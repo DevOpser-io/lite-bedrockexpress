@@ -57,7 +57,7 @@ jobs:
         ANDROID_DEBUG_SHA256: ${{ secrets.ANDROID_DEBUG_SHA256 }}
         ANDROID_RELEASE_SHA256: ${{ secrets.ANDROID_RELEASE_SHA256 }}
         ANDROID_PLAY_SIGNING_SHA256: ${{ secrets.ANDROID_PLAY_SIGNING_SHA256 }}
-        IOS_TEAM_ID: ${{ secrets.IOS_TEAM_ID }}
+        APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
         IOS_BUNDLE_ID: ${{ secrets.IOS_BUNDLE_ID }}
       run: |
         echo "Generating app association files..."
@@ -84,11 +84,11 @@ jobs:
 
         # iOS apple-app-site-association
         echo "🍎 Generating iOS apple-app-site-association..."
-        TEAM_ID="${IOS_TEAM_ID:-YOUR_TEAM_ID}"
+        TEAM_ID="${APPLE_TEAM_ID:-YOUR_TEAM_ID}"
         BUNDLE_ID="${IOS_BUNDLE_ID:-com.example.app}"
 
-        if [ -z "$IOS_TEAM_ID" ]; then
-          echo "⚠️  No IOS_TEAM_ID secret found, using placeholder"
+        if [ -z "$APPLE_TEAM_ID" ]; then
+          echo "⚠️  No APPLE_TEAM_ID secret found, using placeholder"
         fi
 
         if [ -f "backend/public/.well-known/apple-app-site-association.template" ]; then
@@ -163,6 +163,18 @@ jobs:
           npx cap init "$APP_NAME" "$PACKAGE_NAME" --web-dir="frontend/public/static/dist"
         fi
 
+        # Update appId in capacitor.config.json from environment variable
+        if [ -n "$ANDROID_PACKAGE_NAME" ] && [ -f capacitor.config.json ]; then
+          echo "📝 Updating capacitor.config.json with package name from ANDROID_PACKAGE_NAME secret..."
+          node -e "
+            const fs = require('fs');
+            const config = JSON.parse(fs.readFileSync('capacitor.config.json', 'utf8'));
+            config.appId = process.env.ANDROID_PACKAGE_NAME;
+            fs.writeFileSync('capacitor.config.json', JSON.stringify(config, null, 2));
+            console.log('✅ Updated appId to: ' + process.env.ANDROID_PACKAGE_NAME);
+          "
+        fi
+
         # Add platforms if not already added
         if [ ! -d android ]; then
           npx cap add android
@@ -183,6 +195,19 @@ jobs:
         else
           echo "⚠️ Skipping keystore setup - ANDROID_KEYSTORE_BASE64 not set"
         fi
+
+    - name: Configure Android Build with Signing
+      if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/staging'
+      env:
+        ANDROID_PACKAGE_NAME: ${{ secrets.ANDROID_PACKAGE_NAME }}
+      run: |
+        PACKAGE_NAME="${ANDROID_PACKAGE_NAME:-com.example.app}"
+        echo "📝 Configuring Android build for $PACKAGE_NAME..."
+        sed "s/__PACKAGE_NAME__/$PACKAGE_NAME/g" android-build.gradle.template > android/app/build.gradle
+        cp android-variables.gradle.template android/variables.gradle
+        cp android-root-build.gradle.template android/build.gradle
+        cp android-gradle-wrapper.properties.template android/gradle/wrapper/gradle-wrapper.properties
+        echo "✅ Configured Android build with Gradle 8.11.1"
 
     - name: Build Android APK and AAB
       env:
@@ -422,7 +447,15 @@ jobs:
           # Check if Google Play upload is configured using step output
           if [[ "${{ steps.check-google-play.outputs.configured }}" == "true" ]]; then
             echo "✅ **Automatic Upload**: AAB automatically uploaded to Google Play Console (Internal Track)" >> $GITHUB_STEP_SUMMARY
-            echo "- Go to Play Console → Testing → Internal testing to promote the release" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "**To view your uploaded build:**" >> $GITHUB_STEP_SUMMARY
+            echo "1. Go to [Google Play Console](https://play.google.com/console)" >> $GITHUB_STEP_SUMMARY
+            echo "2. Select your app" >> $GITHUB_STEP_SUMMARY
+            echo "3. Navigate to **Testing → Internal testing**" >> $GITHUB_STEP_SUMMARY
+            echo "4. Click **View release details** to see build status" >> $GITHUB_STEP_SUMMARY
+            echo "5. Add testers via **Testers** tab → Manage testers list" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "📱 Testers can install via the **internal app sharing link** or Play Store (once added to testers list)" >> $GITHUB_STEP_SUMMARY
           else
             echo "1. **Download:** Click on 'Mobile-Android-AAB-${{ env.APK_TYPE }}-${{ env.SANITIZED_BRANCH_NAME }}-${{ github.run_number }}' in Artifacts" >> $GITHUB_STEP_SUMMARY
             echo "2. **Upload to Play Console:** Go to Release → Production → Create new release" >> $GITHUB_STEP_SUMMARY
@@ -461,9 +494,18 @@ jobs:
           fi
         fi
         echo "" >> $GITHUB_STEP_SUMMARY
-        echo "### 📱 iOS App" >> $GITHUB_STEP_SUMMARY
+        echo "### 📱 iOS App (TestFlight)" >> $GITHUB_STEP_SUMMARY
         echo "iOS build runs in a separate job on macOS runner." >> $GITHUB_STEP_SUMMARY
         echo "Check the **build-ios** job for iOS build results." >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "**To view your uploaded TestFlight build:**" >> $GITHUB_STEP_SUMMARY
+        echo "1. Go to [App Store Connect](https://appstoreconnect.apple.com)" >> $GITHUB_STEP_SUMMARY
+        echo "2. Select your app → **TestFlight** tab" >> $GITHUB_STEP_SUMMARY
+        echo "3. View builds under **iOS Builds** section" >> $GITHUB_STEP_SUMMARY
+        echo "4. Navigate to **Internal Testing** → Select your group" >> $GITHUB_STEP_SUMMARY
+        echo "5. Add testers via **App Store Connect Users** or **Testers** list" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "📱 Testers receive an email invite and install via the **TestFlight app** on their iOS device" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
         echo "---" >> $GITHUB_STEP_SUMMARY
         echo "**Build Info:**" >> $GITHUB_STEP_SUMMARY
@@ -590,149 +632,6 @@ jobs:
           -t $REGISTRY/$ECR_REPO_NAME:$IMAGE_TAG .
         
         docker push $REGISTRY/$ECR_REPO_NAME:$IMAGE_TAG
-
-    - name: Update Terraform Cloud Variable in destination workspace - Production
-      if: |
-        github.event_name == 'repository_dispatch' && github.event.action == 'trigger-build' ||
-        (github.event_name == 'pull_request' && github.base_ref == 'main') ||
-        (github.event_name == 'push' && github.ref == 'refs/heads/main')
-      run: |
-        curl \
-          --header "Authorization: Bearer ${{ secrets.TFC_TOKEN }}" \
-          --header "Content-Type: application/vnd.api+json" \
-          --request PATCH \
-          --data '{
-            "data": {
-              "id": "${{ secrets.CONTAINER_LABEL_AIDEMO_VARIABLE_ID }}",
-              "type": "vars",
-              "attributes": {
-                "value": "${{ secrets.ECR_REPO_NAME }}:${{ steps.image_tag.outputs.image_tag }}"
-              }
-            }
-          }' \
-        https://app.terraform.io/api/v2/workspaces/${{ secrets.CONTAINER_LABEL_AIDEMO_WORKSPACE_ID }}/vars/${{ secrets.CONTAINER_LABEL_AIDEMO_VARIABLE_ID }}
-
-    - name: Update Terraform Cloud Variable in destination workspace - Staging
-      if: |
-        github.event_name == 'repository_dispatch' && github.event.action == 'trigger-build' ||
-        (github.event_name == 'pull_request' && github.base_ref == 'staging') ||
-        (github.event_name == 'push' && github.ref == 'refs/heads/staging')
-      run: |
-        curl \
-          --header "Authorization: Bearer ${{ secrets.TFC_TOKEN }}" \
-          --header "Content-Type: application/vnd.api+json" \
-          --request PATCH \
-          --data '{
-            "data": {
-              "id": "${{ secrets.CONTAINER_LABEL_AIDEMO_VARIABLE_ID_STAGING }}",
-              "type": "vars",
-              "attributes": {
-                "value": "${{ secrets.ECR_REPO_NAME }}:${{ steps.image_tag.outputs.image_tag }}"
-              }
-            }
-          }' \
-        https://app.terraform.io/api/v2/workspaces/${{ secrets.CONTAINER_LABEL_AIDEMO_WORKSPACE_ID_STAGING }}/vars/${{ secrets.CONTAINER_LABEL_AIDEMO_VARIABLE_ID_STAGING }}
-
-    - name: Update Source workspace Terraform Cloud Variable - Production
-      if: |
-        github.event_name == 'repository_dispatch' && github.event.action == 'trigger-build' ||
-        (github.event_name == 'pull_request' && github.base_ref == 'main') ||
-        (github.event_name == 'push' && github.ref == 'refs/heads/main')
-      run: |
-        curl \
-          --header "Authorization: Bearer ${{ secrets.TFC_TOKEN }}" \
-          --header "Content-Type: application/vnd.api+json" \
-          --request PATCH \
-          --data '{
-            "data": {
-              "id": "${{ secrets.source_workspace_flaskai_variable_id }}",
-              "type": "vars",
-              "attributes": {
-                "value": "${{ secrets.ECR_REPO_NAME }}:${{ steps.image_tag.outputs.image_tag }}"
-              }
-            }
-          }' \
-        https://app.terraform.io/api/v2/workspaces/${{ secrets.source_workspace_id_flaskai }}/vars/${{ secrets.source_workspace_flaskai_variable_id }}
-
-    - name: Update Source workspace Terraform Cloud Variable - Staging
-      if: |
-        github.event_name == 'repository_dispatch' && github.event.action == 'trigger-build' ||
-        (github.event_name == 'pull_request' && github.base_ref == 'staging') ||
-        (github.event_name == 'push' && github.ref == 'refs/heads/staging')
-      run: |
-        curl \
-          --header "Authorization: Bearer ${{ secrets.TFC_TOKEN }}" \
-          --header "Content-Type: application/vnd.api+json" \
-          --request PATCH \
-          --data '{
-            "data": {
-              "id": "${{ secrets.source_workspace_flaskai_variable_id_staging }}",
-              "type": "vars",
-              "attributes": {
-                "value": "${{ secrets.ECR_REPO_NAME }}:${{ steps.image_tag.outputs.image_tag }}"
-              }
-            }
-          }' \
-        https://app.terraform.io/api/v2/workspaces/${{ secrets.source_workspace_id_flaskai }}/vars/${{ secrets.source_workspace_flaskai_variable_id_staging }}
-
-    - name: Trigger Terraform Cloud Run - Production
-      if: |
-        github.event_name == 'repository_dispatch' && github.event.action == 'trigger-build' ||
-        (github.event_name == 'pull_request' && github.base_ref == 'main') ||
-        (github.event_name == 'push' && github.ref == 'refs/heads/main')
-      run: |
-        curl \
-          --header "Authorization: Bearer ${{ secrets.TFC_TOKEN }}" \
-          --header "Content-Type: application/vnd.api+json" \
-          --request POST \
-          --data '{
-            "data": {
-              "attributes": {
-                "is-destroy":false,
-                "message":"Triggered from GitHub Actions"
-              },
-              "type":"runs",
-              "relationships": {
-                "workspace": {
-                  "data": {
-                    "type":"workspaces",
-                    "id":"${{ secrets.container_label_aidemo_workspace_id}}"
-                  }
-                }
-              }
-            }
-          }' \
-          https://app.terraform.io/api/v2/runs
-
-    - name: Trigger Terraform Cloud Run - Staging
-      if: |
-        github.event_name == 'repository_dispatch' && github.event.action == 'trigger-build' ||
-        (github.event_name == 'pull_request' && github.base_ref == 'staging') ||
-        (github.event_name == 'push' && github.ref == 'refs/heads/staging')
-      run: |
-        curl \
-          --header "Authorization: Bearer ${{ secrets.TFC_TOKEN }}" \
-          --header "Content-Type: application/vnd.api+json" \
-          --request POST \
-          --data '{
-            "data": {
-              "attributes": {
-                "is-destroy":false,
-                "message":"Triggered from GitHub Actions"
-              },
-              "type":"runs",
-              "relationships": {
-                "workspace": {
-                  "data": {
-                    "type":"workspaces",
-                    "id":"${{ secrets.CONTAINER_LABEL_AIDEMO_WORKSPACE_ID_STAGING }}"
-                  }
-                }
-              }
-            }
-          }' \
-          https://app.terraform.io/api/v2/runs
-
   build-ios:
     name: Build iOS App
     runs-on: macos-latest
@@ -826,6 +725,18 @@ jobs:
           # Initialize Capacitor if needed
           if [ ! -f capacitor.config.json ]; then
             npx cap init "$APP_NAME" "$BUNDLE_ID" --web-dir="frontend/public/static/dist"
+          fi
+
+          # Update appId in capacitor.config.json from environment variable
+          if [ -n "$IOS_BUNDLE_ID" ] && [ -f capacitor.config.json ]; then
+            echo "📝 Updating capacitor.config.json with bundle ID from IOS_BUNDLE_ID secret..."
+            node -e "
+              const fs = require('fs');
+              const config = JSON.parse(fs.readFileSync('capacitor.config.json', 'utf8'));
+              config.appId = process.env.IOS_BUNDLE_ID;
+              fs.writeFileSync('capacitor.config.json', JSON.stringify(config, null, 2));
+              console.log('✅ Updated appId to: ' + process.env.IOS_BUNDLE_ID);
+            "
           fi
 
           # Add iOS platform if not already added
@@ -1201,7 +1112,15 @@ jobs:
                 fi
                 echo "" >> $GITHUB_STEP_SUMMARY
                 echo "📱 The build will appear in TestFlight after Apple processes it (10-30 min)" >> $GITHUB_STEP_SUMMARY
-                echo "   Internal testers will be notified automatically." >> $GITHUB_STEP_SUMMARY
+                echo "" >> $GITHUB_STEP_SUMMARY
+                echo "**To view your uploaded build:**" >> $GITHUB_STEP_SUMMARY
+                echo "1. Go to [App Store Connect](https://appstoreconnect.apple.com)" >> $GITHUB_STEP_SUMMARY
+                echo "2. Select your app → **TestFlight** tab" >> $GITHUB_STEP_SUMMARY
+                echo "3. View builds under **iOS Builds** section" >> $GITHUB_STEP_SUMMARY
+                echo "4. Navigate to **Internal Testing** → Select your group" >> $GITHUB_STEP_SUMMARY
+                echo "5. Add testers via **App Store Connect Users** or **Testers** list" >> $GITHUB_STEP_SUMMARY
+                echo "" >> $GITHUB_STEP_SUMMARY
+                echo "📱 Testers receive an email invite and install via the **TestFlight app**" >> $GITHUB_STEP_SUMMARY
               else
                 echo "- **TestFlight Upload**: Skipped (no App Store Connect API key configured)" >> $GITHUB_STEP_SUMMARY
               fi
