@@ -1,193 +1,150 @@
-# Bedrock Express
+# lite expressAI Application Template (with Claude Sonnet 3.5 via AWS Bedrock)
 
-An Express.js version of a Bedrock AI Chat application with Amazon Bedrock integration. This application features a clear separation between frontend and backend components for easier AI-driven customization.
+This repository contains the code for the lite AI application.
+This is a site template for the [DevOpser AI Hosting and Development platform](https://app.devopser.io).
 
-## Project Structure
+## CICD Process (GitOps)
 
-The project is organized with a clear separation of concerns:
+## Development Environment Setup
 
-```
-bedrock-express/
-├── frontend/                 # Frontend code
-│   ├── node_modules/         # Frontend dependencies
-│   ├── public/               # Static assets served by Express
-│   │   ├── static/           # CSS, JS, images, etc.
-│   │   └── index.html        # Main HTML entry point
-│   ├── src/                  # Frontend source code
-│   │   ├── chat.js           # Chat functionality
-│   │   ├── styles.css        # Main stylesheet
-│   │   ├── mfa.js            # Multi-factor authentication
-│   │   └── account.js        # Account management
-│   ├── package.json          # Frontend dependencies
-│   └── webpack.config.js     # Frontend webpack configuration
-│
-├── backend/                  # Backend code
-│   ├── node_modules/         # Backend dependencies
-│   ├── config/               # Configuration settings
-│   ├── controllers/          # Request handlers
-│   ├── routes/               # API routes
-│   ├── services/             # Business logic and external services
-│   ├── utils/                # Utility functions
-│   ├── package.json          # Backend dependencies
-│   └── server.js             # Main entry point
-│
-└── package.json              # Root coordination scripts
-```
+The easiest way to get up and running is to launch a development environment within the Site Detail page of your site on the [DevOpser platform](https://app.devopser.io). See the following docs for step by step guide:
+- [Launch a Development Environment](https://devopser.io/docs/launch-development-environment.html)
+    
+To launch a Dev environment inside your own infrastructure/ VPC, subscribe to [the Bedrock express AMI in AWS Marketplace](https://aws.amazon.com/marketplace/pp/prodview-tti62q7ulbcoq), spin up an EC2 using the AMI, and clone this repo into the environment. For detailed step by step instructions to get up and running, [please see the following tutorial](https://devopser.io/blog/get-started-building-your-own-ai-application-in-20-minutes.html) or you can use the [Terraform quickstart](https://github.com/DevOpser-io/bedrock-express-quickstart).
 
-## Features
+## Deployment Process (Staging and Production)
 
-- Clear separation between frontend and backend
-- Amazon Bedrock integration for AI chat
-- Streaming message responses
-- Chat history management
-- Temporary/persistent conversation modes
+1. Create a new branch for your changes, or you can use the "dev" branch that has been pre-made for you.
+2. Make your changes in the new branch and test your changes thoroughly on a remote dev environment.
+3. Create a pull request to the appropriate branch:
+   - For staging deployment: Create a pull request to the `staging` branch.
+   - For production deployment: Create a pull request to the `main` branch.
+4. Wait for the required reviews and checks to pass.
+5. Merge your own PR at your discretion. When you merge your PR or push changes to Staging, you will trigger a build and deployment to the staging environment.
+6. If everything looks good, merge the PR to main and trigger a build and deployment to the production environment.
 
-## Getting Started
+## Mobile App Builds (Optional)
 
-### Prerequisites
+This repository includes GitHub Actions workflows to automatically build Android APK/AAB files and iOS IPA files. Mobile builds are optional - the web application will build and deploy normally even if mobile secrets are not configured.
 
-- Node.js 16+ and npm
-- AWS credentials configured for Bedrock access
+### Required GitHub Secrets for Mobile Builds
 
-### Installation
+#### Android Build Secrets
 
-```bash
-# Install all dependencies (frontend and backend)
-npm run install:all
-```
+To enable Android signed release builds, add these secrets to your GitHub repository:
 
-### Development
+1. **ANDROID_PACKAGE_NAME** - Your Android app package name (e.g., "com.example.app")
+   - Find it in your `android/app/build.gradle` file as `applicationId`
+   - This is used for both Capacitor initialization and Google Play uploads
 
-```bash
-# Build frontend assets and start backend in development mode
-npm run dev
+2. **ANDROID_KEYSTORE_BASE64** - Your Android keystore file encoded as base64
+   ```bash
+   # Generate a keystore (if you don't have one):
+   keytool -genkey -v -keystore upload-keystore.jks -keyalg RSA -keysize 2048 -validity 10000 -alias upload
+       
+   # Encode existing keystore to base64:
+   base64 -i upload-keystore.jks -o keystore-base64.txt
+   # Copy the contents of keystore-base64.txt as the secret value
+   ```
 
-# Just build frontend assets
-npm run frontend:build
+3. **ANDROID_KEYSTORE_PASSWORD** - The password for your keystore
 
-# Watch frontend files for changes
-npm run frontend:watch
+4. **ANDROID_KEY_ALIAS** - The alias you used when creating the keystore (e.g., "upload")
 
-# Start backend in development mode
-npm run backend:dev
-```
+5. **ANDROID_KEY_PASSWORD** - The password for the key (often same as keystore password)
 
-### Production
+#### Android Google Play Upload (Optional)
 
-```bash
-# Build frontend and start backend
-npm start
-```
+To automatically upload builds to Google Play Console:
 
-## Configuration
+1. **GOOGLE_PLAY_SERVICE_ACCOUNT_JSON** - Service account JSON for Google Play uploads
 
-The application's configuration is centralized in the `backend/config/index.js` file. You can customize settings through environment variables or by modifying the config file directly.
+   **Setup Instructions:**
+   1. Go to [Google Cloud Console](https://console.cloud.google.com/)
+   2. Create a new project or select existing
+   3. Enable the "Google Play Android Developer API"
+   4. Create a service account:
+      - Go to "IAM & Admin" → "Service Accounts"
+      - Click "Create Service Account"
+      - Give it a name like "github-actions-playstore"
+      - Grant no specific roles in Cloud Console
+   5. Create and download JSON key:
+      - Click on the service account
+      - Go to "Keys" tab → "Add Key" → "Create new key" → JSON
+   6. In Google Play Console:
+      - Go to "Users and Permissions"
+      - Invite the service account email
+      - Grant "Release Manager" permissions
+   7. Encode the JSON file as the secret value (paste entire JSON content)
 
-Key settings include:
+#### iOS Build Secrets
 
-- Server port (default: 8000)
-- AWS Bedrock model ID and parameters
-- Chat settings (system prompt, history size)
+To enable iOS signed builds and TestFlight uploads:
 
-## Architecture
+1. **IOS_BUNDLE_ID** - Your iOS app bundle identifier (e.g., "com.example.app")
+   - Find it in Apple Developer Portal under Identifiers
+   - This is used for Capacitor initialization and provisioning
 
-This application follows a modular architecture:
+2. **IOS_CERTIFICATE_BASE64** - Your iOS distribution certificate (.p12) as base64
+   ```bash
+   # Export certificate from Keychain Access as .p12, then:
+   base64 -i Certificates.p12 -o cert-base64.txt
+   ```
 
-1. **Frontend**: Browser-based UI built with vanilla JavaScript and CSS
-2. **Backend**: Express.js server with Amazon Bedrock integration
-3. **API**: RESTful endpoints for chat and conversation management
+3. **IOS_CERTIFICATE_PASSWORD** - Password for the .p12 certificate
 
-The frontend and backend communicate via HTTP requests, with server-sent events (SSE) used for streaming responses.
+4. **IOS_PROVISIONING_PROFILE_BASE64** - Your provisioning profile as base64
+   ```bash
+   # Download from Apple Developer Portal, then:
+   base64 -i YourApp.mobileprovision -o profile-base64.txt
+   ```
 
-## CI/CD Pipeline
+5. **APPLE_TEAM_ID** - Your Apple Developer Team ID (found in Apple Developer Portal)
 
-The project includes a comprehensive GitHub Actions workflow that builds Docker images, deploys to AWS, and optionally builds mobile apps for Android and iOS.
+#### iOS TestFlight Upload (Optional)
 
-### Required GitHub Secrets (Core)
+To automatically upload to TestFlight:
 
-These secrets are required for the basic Docker build and AWS deployment:
+1. **APP_STORE_CONNECT_API_KEY_ID** - API Key ID from App Store Connect
 
-| Secret | Description |
-|--------|-------------|
-| `AWS_REGION` | AWS region for deployment (e.g., `us-east-1`) |
-| `AWS_ROLE_TO_ASSUME` | IAM role ARN for GitHub Actions OIDC |
-| `REGISTRIES` | ECR registry ID(s) |
-| `ECR_REPO_NAME` | ECR repository name |
-| `TFC_TOKEN` | Terraform Cloud API token |
-| `DB_NAME_SECRET_NAME` | AWS Secrets Manager name for database name |
-| `DB_USER_SECRET_NAME` | AWS Secrets Manager name for database user |
-| `DB_PASSWORD_SECRET_NAME` | AWS Secrets Manager name for database password |
-| `DB_HOST_SECRET_NAME` | AWS Secrets Manager name for database host |
-| `DB_PORT_SECRET_NAME` | AWS Secrets Manager name for database port |
+2. **APP_STORE_CONNECT_API_ISSUER_ID** - Issuer ID from App Store Connect
 
-### Optional Secrets (Terraform Cloud)
+3. **APP_STORE_CONNECT_API_KEY_BASE64** - The .p8 private key file as base64
 
-For Terraform Cloud integration (production and staging deployments):
+   **Setup Instructions:**
+   1. Go to [App Store Connect](https://appstoreconnect.apple.com/)
+   2. Navigate to "Users and Access" → "Keys"
+   3. Click "+" to create a new API key
+   4. Name it (e.g., "GitHub Actions") and select "App Manager" role
+   5. Download the .p8 file (you can only download once!)
+   6. Note the Key ID and Issuer ID shown on the page
+   7. Encode the .p8 file:
+      ```bash
+      base64 -i AuthKey_XXXXXXXXXX.p8 -o apikey-base64.txt
+      ```
 
-| Secret | Description |
-|--------|-------------|
-| `CONTAINER_LABEL_AIDEMO_WORKSPACE_ID` | Production TFC workspace ID |
-| `CONTAINER_LABEL_AIDEMO_VARIABLE_ID` | Production TFC variable ID |
-| `CONTAINER_LABEL_AIDEMO_WORKSPACE_ID_STAGING` | Staging TFC workspace ID |
-| `CONTAINER_LABEL_AIDEMO_VARIABLE_ID_STAGING` | Staging TFC variable ID |
-| `source_workspace_id_flaskai` | Source workspace ID |
-| `source_workspace_flaskai_variable_id` | Source workspace variable ID (production) |
-| `source_workspace_flaskai_variable_id_staging` | Source workspace variable ID (staging) |
+#### App Association Files (Optional)
 
-### Optional Secrets (Mobile App Build - Android)
+For deep linking support:
 
-These secrets enable Android app building and signing. If not provided, the mobile build steps will be skipped gracefully:
+- **ANDROID_DEBUG_SHA256** - SHA256 fingerprint of debug certificate
+- **ANDROID_RELEASE_SHA256** - SHA256 fingerprint of release certificate
+- **IOS_BUNDLE_ID** - Your iOS app bundle identifier
+- **IOS_TEAM_ID** - Your Apple Developer Team ID
 
-| Secret | Description |
-|--------|-------------|
-| `ANDROID_KEYSTORE_BASE64` | Base64-encoded Android keystore file (.jks) |
-| `ANDROID_KEYSTORE_PASSWORD` | Keystore password |
-| `ANDROID_KEY_ALIAS` | Key alias in the keystore |
-| `ANDROID_KEY_PASSWORD` | Key password |
-| `ANDROID_PACKAGE_NAME` | Android package name (e.g., `com.example.app`) |
-| `ANDROID_DEBUG_SHA256` | Debug signing certificate SHA-256 fingerprint |
-| `ANDROID_RELEASE_SHA256` | Release signing certificate SHA-256 fingerprint |
-| `ANDROID_PLAY_SIGNING_SHA256` | Google Play signing certificate SHA-256 fingerprint |
-| `GOOGLE_PLAY_SERVICE_ACCOUNT_JSON` | Google Play Console service account JSON (for automatic uploads) |
+### Adding Secrets to GitHub
 
-### Optional Secrets (Mobile App Build - iOS)
+1. Go to your repository on GitHub
+2. Click "Settings" → "Secrets and variables" → "Actions"
+3. Click "New repository secret"
+4. Add each secret with the name and value as specified above
 
-These secrets enable iOS app building and signing. If not provided, the iOS build job will be skipped:
+### Build Outputs
 
-| Secret | Description |
-|--------|-------------|
-| `IOS_CERTIFICATE_BASE64` | Base64-encoded iOS distribution certificate (.p12) |
-| `IOS_CERTIFICATE_PASSWORD` | Certificate password |
-| `IOS_PROVISIONING_PROFILE_BASE64` | Base64-encoded provisioning profile |
-| `IOS_TEAM_ID` | Apple Developer Team ID |
-| `IOS_BUNDLE_ID` | iOS app bundle ID (e.g., `com.example.app`) |
-| `APPLE_TEAM_ID` | Apple Team ID for code signing |
-| `APP_STORE_CONNECT_API_KEY_ID` | App Store Connect API Key ID (for TestFlight uploads) |
-| `APP_STORE_CONNECT_API_ISSUER_ID` | App Store Connect API Issuer ID |
-| `APP_STORE_CONNECT_API_KEY_BASE64` | Base64-encoded App Store Connect API key (.p8) |
+- **Android**: APK files for direct installation, AAB files for Google Play Store
+- **iOS**: IPA files for TestFlight/App Store distribution
+- Builds are uploaded as GitHub Actions artifacts
+- Staging builds have WebView debugging enabled for development
+- Production builds have debugging disabled for security
 
-### Graceful Degradation
-
-The CI/CD pipeline is designed to run gracefully even without all secrets configured:
-
-- **No mobile secrets**: Docker build and deployment proceed normally; mobile build steps are skipped
-- **No Android keystore**: Debug APKs are built instead of signed release builds
-- **No iOS certificates**: iOS build job is skipped entirely
-- **No Google Play credentials**: AAB files are uploaded as artifacts only (manual upload required)
-- **No TestFlight credentials**: IPA files are uploaded as artifacts only (manual upload required)
-
-### Mobile Build Prerequisites
-
-To enable mobile builds, your project needs:
-
-1. `capacitor.config.json` - Capacitor configuration file
-2. `build-mobile.sh` - Mobile build script
-3. `android/` directory - Android project (can be auto-generated by Capacitor)
-4. `ios/` directory - iOS project (can be auto-generated by Capacitor)
-
-### Branch Strategy
-
-- **main**: Production builds with full signing and deployment
-- **staging**: Staging builds with WebView debugging enabled for testing
-
-Staging builds enable Chrome DevTools (Android) and Safari Web Inspector (iOS) debugging to help diagnose issues before production deployment.
+Without these secrets configured, the workflow will still build debug versions for testing, but won't create signed releases suitable for app store distribution.
