@@ -302,7 +302,7 @@
         if (data.requiresMfa) {
           window.location.href = data.redirect || '/auth/mfa-verify';
         } else {
-          window.location.href = data.redirect || '/chat';
+          window.location.href = data.redirect || '/';
         }
       } else {
         showVerifyError(data.error || 'Invalid code');

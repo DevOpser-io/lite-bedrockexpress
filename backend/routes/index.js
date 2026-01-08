@@ -8,12 +8,13 @@ const chatRoutes = require('./chat');
 const apiRoutes = require('./api');
 const { ensureFullAuth } = require('../middleware/authMiddleware');
 
-// Root route - redirect to chat if fully authenticated (login + MFA), otherwise to login
+// Root route - landing page with builder interface (no auth required to view)
 router.get('/', (req, res) => {
-  if (req.isAuthenticated && req.isAuthenticated() && req.session.mfaVerified) {
-    return res.redirect('/chat');
-  }
-  return res.redirect('/auth/login');
+  // Render the landing builder - works for both authenticated and unauthenticated users
+  res.render('landing-builder', {
+    user: req.isAuthenticated && req.isAuthenticated() ? req.user : null,
+    cspNonce: res.locals.cspNonce || ''
+  });
 });
 
 // Health check endpoint

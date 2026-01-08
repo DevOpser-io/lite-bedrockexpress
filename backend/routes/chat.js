@@ -13,9 +13,12 @@ const { mobileAuth } = require('../middleware/mobileAuth');
 router.use(express.json());
 router.use(express.urlencoded({ extended: false }));
 
-// Main chat page rendering
-router.get('/', ensureFullAuth, (req, res) => {
-  res.redirect('/chat');
+// Main page - landing builder (no auth required to view)
+router.get('/', (req, res) => {
+  res.render('landing-builder', {
+    user: req.isAuthenticated && req.isAuthenticated() ? req.user : null,
+    cspNonce: res.locals.cspNonce || ''
+  });
 });
 
 router.get('/chat', ensureFullAuth, async (req, res) => {

@@ -1,0 +1,334 @@
+<!-- DevOpser Lite Sites Dashboard -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Sites - DevOpser Lite</title>
+  <link rel="icon" href="/static/icon.png" type="image/png">
+
+  <!-- CSS Files -->
+  <link rel="stylesheet" href="/static/css/litera-bootstrap.min.css">
+  <link rel="stylesheet" href="/static/css/bootstrap-icons.css">
+  <link rel="stylesheet" href="/static/nav.css">
+
+  <style nonce="<%= cspNonce %>">
+    .sites-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 2rem;
+    }
+
+    .page-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 2rem;
+    }
+
+    .site-card {
+      background: #fff;
+      border: 1px solid #dee2e6;
+      border-radius: 0.5rem;
+      padding: 1.5rem;
+      margin-bottom: 1rem;
+      transition: box-shadow 0.2s, transform 0.2s;
+    }
+
+    .site-card:hover {
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      transform: translateY(-2px);
+    }
+
+    .site-card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 1rem;
+    }
+
+    .site-name {
+      font-size: 1.25rem;
+      font-weight: 600;
+      margin: 0;
+    }
+
+    .site-url {
+      font-family: monospace;
+      font-size: 0.875rem;
+      color: #6c757d;
+      margin-top: 0.25rem;
+    }
+
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.25rem;
+      padding: 0.25rem 0.75rem;
+      border-radius: 1rem;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+
+    .status-draft { background: #ffc107; color: #212529; }
+    .status-deploying { background: #17a2b8; color: white; }
+    .status-published { background: #28a745; color: white; }
+    .status-failed { background: #dc3545; color: white; }
+
+    .site-card-actions {
+      display: flex;
+      gap: 0.5rem;
+      margin-top: 1rem;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 4rem 2rem;
+      background: #f8f9fa;
+      border-radius: 0.5rem;
+    }
+
+    .empty-state i {
+      font-size: 4rem;
+      color: #dee2e6;
+      margin-bottom: 1rem;
+    }
+
+    .empty-state h3 {
+      color: #6c757d;
+    }
+
+    /* Create site modal */
+    .create-form .form-label {
+      font-weight: 500;
+    }
+
+    .create-form textarea {
+      resize: none;
+    }
+  </style>
+
+  <script src="/static/js/bootstrap.bundle.min.js" defer></script>
+</head>
+<body>
+  <header>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+      <div class="container-fluid">
+        <a class="navbar-brand" href="/sites">DevOpser Lite</a>
+
+        <button
+          class="navbar-toggler"
+          type="button"
+          data-bs-toggle="collapse"
+          data-bs-target="#navbarNav"
+        >
+          <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navbarNav">
+          <ul class="navbar-nav me-auto">
+            <li class="nav-item">
+              <a class="nav-link" href="/">
+                <i class="bi bi-plus-circle me-1"></i> New Site
+              </a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link active" href="/sites">My Sites</a>
+            </li>
+          </ul>
+          <ul class="navbar-nav">
+            <li class="nav-item">
+              <a class="nav-link" href="/account">Account</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="/auth/logout">Logout</a>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+  </header>
+
+  <main class="sites-container">
+    <div class="page-header">
+      <div>
+        <h1>My Sites</h1>
+        <p class="text-muted">Create and manage your websites</p>
+      </div>
+      <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createSiteModal">
+        <i class="bi bi-plus-lg me-1"></i> Create Site
+      </button>
+    </div>
+
+    <% if (sites && sites.length > 0) { %>
+    <div class="sites-list">
+      <% sites.forEach(site => { %>
+      <div class="site-card">
+        <div class="site-card-header">
+          <div>
+            <h3 class="site-name"><%= site.name %></h3>
+            <div class="site-url">
+              <i class="bi bi-globe me-1"></i>
+              <%= site.slug %>.devopser.io
+            </div>
+          </div>
+          <span class="status-badge status-<%= site.status %>">
+            <i class="bi bi-circle-fill" style="font-size: 0.5rem;"></i>
+            <%= site.status.charAt(0).toUpperCase() + site.status.slice(1) %>
+          </span>
+        </div>
+
+        <p class="text-muted small mb-2">
+          Created <%= new Date(site.createdAt).toLocaleDateString() %>
+          <% if (site.status === 'published' && site.publishedConfig) { %>
+          &bull; Last published <%= new Date(site.updatedAt).toLocaleDateString() %>
+          <% } %>
+        </p>
+
+        <div class="site-card-actions">
+          <a href="/sites/<%= site.id %>/builder" class="btn btn-primary btn-sm">
+            <i class="bi bi-pencil me-1"></i> Edit
+          </a>
+          <% if (site.status === 'published') { %>
+          <a href="https://<%= site.slug %>.devopser.io" target="_blank" class="btn btn-outline-success btn-sm">
+            <i class="bi bi-box-arrow-up-right me-1"></i> View Live
+          </a>
+          <% } %>
+          <button class="btn btn-outline-danger btn-sm" onclick="deleteSite(<%= site.id %>, '<%= site.name %>')">
+            <i class="bi bi-trash me-1"></i> Delete
+          </button>
+        </div>
+      </div>
+      <% }) %>
+    </div>
+    <% } else { %>
+    <div class="empty-state">
+      <i class="bi bi-easel"></i>
+      <h3>No sites yet</h3>
+      <p class="text-muted mb-4">Create your first website in minutes with AI assistance</p>
+      <button class="btn btn-primary btn-lg" data-bs-toggle="modal" data-bs-target="#createSiteModal">
+        <i class="bi bi-plus-lg me-1"></i> Create Your First Site
+      </button>
+    </div>
+    <% } %>
+  </main>
+
+  <!-- Create Site Modal -->
+  <div class="modal fade" id="createSiteModal" tabindex="-1">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Create New Site</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <form id="create-site-form" class="create-form">
+          <div class="modal-body">
+            <div class="mb-3">
+              <label for="siteName" class="form-label">Site Name</label>
+              <input
+                type="text"
+                class="form-control"
+                id="siteName"
+                name="name"
+                placeholder="My Awesome Website"
+                required
+              >
+              <div class="form-text">This will be used to generate your subdomain</div>
+            </div>
+
+            <div class="mb-3">
+              <label for="siteDescription" class="form-label">
+                Describe your site <span class="text-muted">(optional)</span>
+              </label>
+              <textarea
+                class="form-control"
+                id="siteDescription"
+                name="description"
+                rows="3"
+                placeholder="E.g., A landing page for my fitness coaching business with pricing tiers and a contact form"
+              ></textarea>
+              <div class="form-text">The AI will use this to generate your initial content</div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+            <button type="submit" class="btn btn-primary" id="create-btn">
+              <i class="bi bi-magic me-1"></i> Create Site
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <script nonce="<%= cspNonce %>">
+    // Create site form handler
+    const createForm = document.getElementById('create-site-form');
+    const createBtn = document.getElementById('create-btn');
+
+    createForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const name = document.getElementById('siteName').value.trim();
+      const description = document.getElementById('siteDescription').value.trim();
+
+      if (!name) return;
+
+      createBtn.disabled = true;
+      createBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Creating...';
+
+      try {
+        const response = await fetch('/api/sites', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          credentials: 'same-origin',
+          body: JSON.stringify({ name, description })
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+          // Redirect to builder
+          window.location.href = `/sites/${data.site.id}/builder`;
+        } else {
+          alert('Error: ' + (data.error || 'Failed to create site'));
+          createBtn.disabled = false;
+          createBtn.innerHTML = '<i class="bi bi-magic me-1"></i> Create Site';
+        }
+      } catch (error) {
+        console.error('Create error:', error);
+        alert('Error: Failed to create site. Please try again.');
+        createBtn.disabled = false;
+        createBtn.innerHTML = '<i class="bi bi-magic me-1"></i> Create Site';
+      }
+    });
+
+    // Delete site handler
+    async function deleteSite(siteId, siteName) {
+      if (!confirm(`Are you sure you want to delete "${siteName}"? This cannot be undone.`)) {
+        return;
+      }
+
+      try {
+        const response = await fetch(`/api/sites/${siteId}`, {
+          method: 'DELETE',
+          credentials: 'same-origin'
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+          location.reload();
+        } else {
+          alert('Error: ' + (data.error || 'Failed to delete site'));
+        }
+      } catch (error) {
+        console.error('Delete error:', error);
+        alert('Error: Failed to delete site. Please try again.');
+      }
+    }
+  </script>
+</body>
+</html>

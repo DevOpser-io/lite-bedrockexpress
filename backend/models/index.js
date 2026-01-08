@@ -8,6 +8,9 @@ const { getSecret } = require('../services/secretsManager');
 const bcrypt = require('bcryptjs');
 const crypto = require('crypto');
 const UserModel = require('./User');
+const SiteModel = require('./Site');
+const DeploymentModel = require('./Deployment');
+const SiteImageModel = require('./SiteImage');
 
 // Create a module object to export
 const db = {};
@@ -98,10 +101,21 @@ if (process.env.NODE_ENV !== 'production') {
   // Initialize models synchronously for development
   db.User = UserModel(db.sequelize);
   db.Conversation = defineConversationModel(db.sequelize);
-  
+  db.Site = SiteModel(db.sequelize);
+  db.Deployment = DeploymentModel(db.sequelize);
+  db.SiteImage = SiteImageModel(db.sequelize);
+
   // Setup associations
   db.User.hasMany(db.Conversation, { foreignKey: 'user_id' });
   db.Conversation.belongsTo(db.User, { foreignKey: 'user_id' });
+
+  // Site associations
+  db.User.hasMany(db.Site, { foreignKey: 'user_id', as: 'sites' });
+  db.Site.belongsTo(db.User, { foreignKey: 'user_id', as: 'owner' });
+  db.Site.hasMany(db.Deployment, { foreignKey: 'site_id', as: 'deployments' });
+  db.Deployment.belongsTo(db.Site, { foreignKey: 'site_id', as: 'site' });
+  db.Site.hasMany(db.SiteImage, { foreignKey: 'site_id', as: 'images' });
+  db.SiteImage.belongsTo(db.Site, { foreignKey: 'site_id', as: 'site' });
 }
 
 // Flag to track initialization
@@ -310,14 +324,25 @@ async function initializeDatabase() {
       // Initialize Sequelize with the appropriate configuration
       const sequelize = await initializeSequelize();
       db.sequelize = sequelize;
-      
+
       // Define models with the initialized sequelize instance
       db.User = UserModel(sequelize);
       db.Conversation = defineConversationModel(sequelize);
-      
+      db.Site = SiteModel(sequelize);
+      db.Deployment = DeploymentModel(sequelize);
+      db.SiteImage = SiteImageModel(sequelize);
+
       // Setup associations between models
       db.User.hasMany(db.Conversation, { foreignKey: 'user_id' });
       db.Conversation.belongsTo(db.User, { foreignKey: 'user_id' });
+
+      // Site associations
+      db.User.hasMany(db.Site, { foreignKey: 'user_id', as: 'sites' });
+      db.Site.belongsTo(db.User, { foreignKey: 'user_id', as: 'owner' });
+      db.Site.hasMany(db.Deployment, { foreignKey: 'site_id', as: 'deployments' });
+      db.Deployment.belongsTo(db.Site, { foreignKey: 'site_id', as: 'site' });
+      db.Site.hasMany(db.SiteImage, { foreignKey: 'site_id', as: 'images' });
+      db.SiteImage.belongsTo(db.Site, { foreignKey: 'site_id', as: 'site' });
     }
     
     // Test connection

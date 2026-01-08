@@ -1,0 +1,1206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DevOpser - Build Your Website with AI</title>
+  <%- include('./partials/favicon') %>
+  <link rel="stylesheet" href="/static/chat-custom.css">
+  <style nonce="<%= typeof cspNonce !== 'undefined' ? cspNonce : '' %>">
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+      background: #0f0f0f;
+      color: #fff;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    .builder-container {
+      display: flex;
+      height: 100vh;
+    }
+
+    /* Chat Sidebar */
+    .chat-sidebar {
+      width: 400px;
+      min-width: 350px;
+      background: #1a1a1a;
+      border-right: 1px solid #333;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .chat-header {
+      padding: 20px;
+      border-bottom: 1px solid #333;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .chat-header .logo {
+      font-size: 1.5rem;
+      font-weight: 700;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .chat-header .tagline {
+      font-size: 0.85rem;
+      color: #888;
+    }
+
+    .chat-messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .welcome-message {
+      text-align: center;
+      padding: 40px 20px;
+    }
+
+    .welcome-message h2 {
+      font-size: 1.5rem;
+      margin-bottom: 12px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .welcome-message p {
+      color: #888;
+      line-height: 1.6;
+      margin-bottom: 20px;
+    }
+
+    .example-prompts {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .example-prompt {
+      background: #252525;
+      border: 1px solid #333;
+      padding: 12px 16px;
+      border-radius: 8px;
+      cursor: pointer;
+      text-align: left;
+      color: #ccc;
+      font-size: 0.9rem;
+      transition: all 0.2s;
+    }
+
+    .example-prompt:hover {
+      background: #2a2a2a;
+      border-color: #667eea;
+      color: #fff;
+    }
+
+    .message {
+      max-width: 90%;
+      padding: 12px 16px;
+      border-radius: 12px;
+      line-height: 1.5;
+    }
+
+    .message.user {
+      align-self: flex-end;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: #fff;
+    }
+
+    .message.assistant {
+      align-self: flex-start;
+      background: #252525;
+      color: #e0e0e0;
+    }
+
+    .chat-input-container {
+      padding: 20px;
+      border-top: 1px solid #333;
+    }
+
+    .chat-input-wrapper {
+      display: flex;
+      gap: 12px;
+      align-items: flex-end;
+    }
+
+    .chat-input {
+      flex: 1;
+      background: #252525;
+      border: 1px solid #333;
+      border-radius: 12px;
+      padding: 14px 18px;
+      color: #fff;
+      font-size: 1rem;
+      resize: none;
+      min-height: 52px;
+      max-height: 150px;
+      font-family: inherit;
+    }
+
+    .chat-input:focus {
+      outline: none;
+      border-color: #667eea;
+    }
+
+    .chat-input::placeholder {
+      color: #666;
+    }
+
+    .send-button {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      border: none;
+      border-radius: 12px;
+      width: 52px;
+      height: 52px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: transform 0.2s, opacity 0.2s;
+    }
+
+    .send-button:hover {
+      transform: scale(1.05);
+    }
+
+    .send-button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .send-button svg {
+      width: 24px;
+      height: 24px;
+      fill: #fff;
+    }
+
+    /* Preview Area */
+    .preview-area {
+      flex: 1;
+      background: #252525;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .preview-header {
+      padding: 12px 20px;
+      border-bottom: 1px solid #333;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: #1a1a1a;
+    }
+
+    .preview-url {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: #252525;
+      padding: 8px 16px;
+      border-radius: 20px;
+      font-size: 0.85rem;
+      color: #888;
+    }
+
+    .preview-url .dot {
+      width: 8px;
+      height: 8px;
+      background: #444;
+      border-radius: 50%;
+    }
+
+    .preview-url.live .dot {
+      background: #10b981;
+    }
+
+    .preview-actions {
+      display: flex;
+      gap: 8px;
+    }
+
+    .preview-action-btn {
+      background: #333;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 6px;
+      color: #ccc;
+      font-size: 0.85rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .preview-action-btn:hover {
+      background: #444;
+      color: #fff;
+    }
+
+    .preview-action-btn.primary {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: #fff;
+    }
+
+    .preview-content {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 40px;
+    }
+
+    .preview-placeholder {
+      text-align: center;
+      max-width: 500px;
+    }
+
+    .preview-placeholder .icon {
+      width: 120px;
+      height: 120px;
+      background: linear-gradient(135deg, #667eea20 0%, #764ba220 100%);
+      border-radius: 24px;
+      margin: 0 auto 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .preview-placeholder .icon svg {
+      width: 60px;
+      height: 60px;
+      stroke: #667eea;
+    }
+
+    .preview-placeholder h3 {
+      font-size: 1.5rem;
+      margin-bottom: 12px;
+      color: #fff;
+    }
+
+    .preview-placeholder p {
+      color: #888;
+      line-height: 1.6;
+    }
+
+    .preview-iframe-container {
+      flex: 1;
+      display: none;
+      background: #fff;
+    }
+
+    .preview-iframe-container.active {
+      display: block;
+    }
+
+    .preview-iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+    }
+
+    /* Auth Modal */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.8);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+      backdrop-filter: blur(4px);
+    }
+
+    .modal-overlay.active {
+      display: flex;
+    }
+
+    .auth-modal {
+      background: #1a1a1a;
+      border-radius: 16px;
+      padding: 40px;
+      max-width: 420px;
+      width: 90%;
+      border: 1px solid #333;
+    }
+
+    .auth-modal h2 {
+      font-size: 1.5rem;
+      margin-bottom: 8px;
+      text-align: center;
+    }
+
+    .auth-modal .subtitle {
+      color: #888;
+      text-align: center;
+      margin-bottom: 24px;
+    }
+
+    .auth-modal .form-group {
+      margin-bottom: 16px;
+    }
+
+    .auth-modal label {
+      display: block;
+      margin-bottom: 8px;
+      color: #ccc;
+      font-size: 0.9rem;
+    }
+
+    .auth-modal input {
+      width: 100%;
+      padding: 14px 16px;
+      background: #252525;
+      border: 1px solid #333;
+      border-radius: 8px;
+      color: #fff;
+      font-size: 1rem;
+    }
+
+    .auth-modal input:focus {
+      outline: none;
+      border-color: #667eea;
+    }
+
+    .auth-modal .auth-button {
+      width: 100%;
+      padding: 14px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      border: none;
+      border-radius: 8px;
+      color: #fff;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.2s;
+    }
+
+    .auth-modal .auth-button:hover {
+      transform: scale(1.02);
+    }
+
+    .auth-modal .auth-button:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .auth-modal .error-message {
+      background: #3d1f1f;
+      color: #ff6b6b;
+      padding: 12px;
+      border-radius: 8px;
+      margin-bottom: 16px;
+      font-size: 0.9rem;
+      display: none;
+    }
+
+    .auth-modal .error-message.show {
+      display: block;
+    }
+
+    .auth-modal .success-message {
+      background: #1f3d2a;
+      color: #10b981;
+      padding: 12px;
+      border-radius: 8px;
+      margin-bottom: 16px;
+      font-size: 0.9rem;
+      display: none;
+    }
+
+    .auth-modal .success-message.show {
+      display: block;
+    }
+
+    .auth-modal .code-input {
+      font-size: 1.5rem;
+      letter-spacing: 8px;
+      text-align: center;
+      font-family: 'Courier New', monospace;
+    }
+
+    .auth-step {
+      display: none;
+    }
+
+    .auth-step.active {
+      display: block;
+    }
+
+    .auth-modal .back-link {
+      text-align: center;
+      margin-top: 16px;
+    }
+
+    .auth-modal .back-link a {
+      color: #667eea;
+      text-decoration: none;
+      font-size: 0.9rem;
+    }
+
+    .auth-modal .back-link a:hover {
+      text-decoration: underline;
+    }
+
+    /* Generating state */
+    .generating-indicator {
+      display: none;
+      align-items: center;
+      gap: 12px;
+      padding: 16px;
+      background: #252525;
+      border-radius: 12px;
+    }
+
+    .generating-indicator.active {
+      display: flex;
+    }
+
+    .generating-indicator .spinner {
+      width: 24px;
+      height: 24px;
+      border: 3px solid #333;
+      border-top-color: #667eea;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    /* User menu */
+    .user-menu {
+      display: none;
+    }
+
+    .user-menu.authenticated {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .user-avatar {
+      width: 32px;
+      height: 32px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 600;
+      font-size: 0.85rem;
+    }
+
+    .user-menu-dropdown {
+      position: relative;
+    }
+
+    .user-menu-btn {
+      background: none;
+      border: none;
+      color: #ccc;
+      cursor: pointer;
+      padding: 8px;
+    }
+
+    /* My Sites Link */
+    .my-sites-link {
+      display: none;
+      padding: 8px 16px;
+      background: #252525;
+      border: 1px solid #333;
+      border-radius: 8px;
+      color: #ccc;
+      text-decoration: none;
+      font-size: 0.85rem;
+      transition: all 0.2s;
+    }
+
+    .my-sites-link:hover {
+      background: #333;
+      color: #fff;
+    }
+
+    .my-sites-link.show {
+      display: block;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .builder-container {
+        flex-direction: column;
+      }
+
+      .chat-sidebar {
+        width: 100%;
+        min-width: auto;
+        height: 50vh;
+      }
+
+      .preview-area {
+        height: 50vh;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="builder-container">
+    <!-- Chat Sidebar -->
+    <div class="chat-sidebar">
+      <div class="chat-header">
+        <div>
+          <div class="logo">DevOpser</div>
+          <div class="tagline">AI Website Builder</div>
+        </div>
+        <div style="margin-left: auto; display: flex; gap: 12px; align-items: center;">
+          <a href="/sites" class="my-sites-link" id="mySitesLink">My Sites</a>
+          <div class="user-menu" id="userMenu">
+            <div class="user-avatar" id="userAvatar"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="chat-messages" id="chatMessages">
+        <div class="welcome-message" id="welcomeMessage">
+          <h2>What do you want to build?</h2>
+          <p>Describe your website and watch it come to life. No coding required.</p>
+          <div class="example-prompts">
+            <button class="example-prompt" data-prompt="A landing page for an AI startup that helps developers write better code">
+              AI startup landing page
+            </button>
+            <button class="example-prompt" data-prompt="A portfolio website for a freelance photographer with a dark, elegant theme">
+              Photographer portfolio
+            </button>
+            <button class="example-prompt" data-prompt="A SaaS pricing page with three tiers: Free, Pro, and Enterprise">
+              SaaS pricing page
+            </button>
+          </div>
+        </div>
+
+        <div class="generating-indicator" id="generatingIndicator">
+          <div class="spinner"></div>
+          <span>Generating your website...</span>
+        </div>
+      </div>
+
+      <div class="chat-input-container">
+        <div class="chat-input-wrapper">
+          <textarea
+            class="chat-input"
+            id="chatInput"
+            placeholder="Describe your website..."
+            rows="1"
+          ></textarea>
+          <button class="send-button" id="sendButton">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Preview Area -->
+    <div class="preview-area">
+      <div class="preview-header">
+        <div class="preview-url" id="previewUrl">
+          <span class="dot"></span>
+          <span id="previewUrlText">your-site.devopser.io</span>
+        </div>
+        <div class="preview-actions">
+          <button class="preview-action-btn" id="editSectionsBtn" style="display: none;">Edit Sections</button>
+          <button class="preview-action-btn primary" id="publishBtn" style="display: none;">Publish</button>
+        </div>
+      </div>
+
+      <div class="preview-content" id="previewPlaceholder">
+        <div class="preview-placeholder">
+          <div class="icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="1.5">
+              <path d="M12 18v-3m0-3v.01M12 3l9.5 16.5H2.5L12 3z"/>
+            </svg>
+          </div>
+          <h3>Your website preview</h3>
+          <p>Start by describing what you want to build. Your website will appear here as we generate it together.</p>
+        </div>
+      </div>
+
+      <div class="preview-iframe-container" id="previewIframeContainer">
+        <iframe class="preview-iframe" id="previewIframe" sandbox="allow-scripts"></iframe>
+      </div>
+    </div>
+  </div>
+
+  <!-- Auth Modal -->
+  <div class="modal-overlay" id="authModal">
+    <div class="auth-modal">
+      <!-- Email Step -->
+      <div class="auth-step active" id="authEmailStep">
+        <h2>Almost there!</h2>
+        <p class="subtitle">Enter your email to save your website</p>
+
+        <div class="error-message" id="authError"></div>
+        <div class="success-message" id="authSuccess"></div>
+
+        <div class="form-group">
+          <label for="authEmail">Email</label>
+          <input type="email" id="authEmail" placeholder="you@example.com" required>
+        </div>
+
+        <button class="auth-button" id="authSendCodeBtn">Continue</button>
+      </div>
+
+      <!-- Code Step -->
+      <div class="auth-step" id="authCodeStep">
+        <h2>Check your email</h2>
+        <p class="subtitle">Enter the 6-digit code sent to <strong id="authEmailDisplay"></strong></p>
+
+        <div class="error-message" id="authCodeError"></div>
+        <div class="success-message" id="authCodeSuccess"></div>
+
+        <div class="form-group">
+          <input type="text" id="authCode" class="code-input" placeholder="000000" maxlength="6" pattern="[0-9]{6}" inputmode="numeric">
+        </div>
+
+        <button class="auth-button" id="authVerifyCodeBtn">Verify & Create Website</button>
+
+        <div class="back-link">
+          <a href="#" id="authBackBtn">Use a different email</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script nonce="<%= typeof cspNonce !== 'undefined' ? cspNonce : '' %>">
+    (function() {
+      // State
+      let isAuthenticated = <%= typeof user !== 'undefined' && user ? 'true' : 'false' %>;
+      let currentUser = <%= typeof user !== 'undefined' && user ? JSON.stringify({ email: user.email }) : 'null' %>;
+      let pendingPrompt = null;
+      let currentSiteId = null;
+      let currentSiteConfig = null;
+      let authEmail = '';
+
+      // Elements
+      const chatMessages = document.getElementById('chatMessages');
+      const chatInput = document.getElementById('chatInput');
+      const sendButton = document.getElementById('sendButton');
+      const welcomeMessage = document.getElementById('welcomeMessage');
+      const generatingIndicator = document.getElementById('generatingIndicator');
+      const authModal = document.getElementById('authModal');
+      const previewPlaceholder = document.getElementById('previewPlaceholder');
+      const previewIframeContainer = document.getElementById('previewIframeContainer');
+      const previewIframe = document.getElementById('previewIframe');
+      const previewUrl = document.getElementById('previewUrl');
+      const previewUrlText = document.getElementById('previewUrlText');
+      const mySitesLink = document.getElementById('mySitesLink');
+      const userMenu = document.getElementById('userMenu');
+      const userAvatar = document.getElementById('userAvatar');
+      const publishBtn = document.getElementById('publishBtn');
+
+      // Auth elements
+      const authEmailStep = document.getElementById('authEmailStep');
+      const authCodeStep = document.getElementById('authCodeStep');
+      const authEmailInput = document.getElementById('authEmail');
+      const authCodeInput = document.getElementById('authCode');
+      const authSendCodeBtn = document.getElementById('authSendCodeBtn');
+      const authVerifyCodeBtn = document.getElementById('authVerifyCodeBtn');
+      const authBackBtn = document.getElementById('authBackBtn');
+      const authEmailDisplay = document.getElementById('authEmailDisplay');
+      const authError = document.getElementById('authError');
+      const authSuccess = document.getElementById('authSuccess');
+      const authCodeError = document.getElementById('authCodeError');
+      const authCodeSuccess = document.getElementById('authCodeSuccess');
+
+      // Initialize
+      function init() {
+        if (isAuthenticated && currentUser) {
+          updateUIForAuthenticatedUser();
+        }
+
+        // Check for pending prompt in localStorage
+        const stored = localStorage.getItem('pendingPrompt');
+        if (stored && isAuthenticated) {
+          localStorage.removeItem('pendingPrompt');
+          pendingPrompt = stored;
+          processPrompt(stored);
+        }
+
+        // Example prompts
+        document.querySelectorAll('.example-prompt').forEach(btn => {
+          btn.addEventListener('click', () => {
+            chatInput.value = btn.dataset.prompt;
+            chatInput.focus();
+          });
+        });
+
+        // Send button
+        sendButton.addEventListener('click', handleSend);
+
+        // Enter key
+        chatInput.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            handleSend();
+          }
+        });
+
+        // Auto-resize textarea
+        chatInput.addEventListener('input', () => {
+          chatInput.style.height = 'auto';
+          chatInput.style.height = Math.min(chatInput.scrollHeight, 150) + 'px';
+        });
+
+        // Auth modal handlers
+        authSendCodeBtn.addEventListener('click', handleSendCode);
+        authVerifyCodeBtn.addEventListener('click', handleVerifyCode);
+        authBackBtn.addEventListener('click', (e) => {
+          e.preventDefault();
+          showAuthStep('email');
+        });
+
+        authEmailInput.addEventListener('keypress', (e) => {
+          if (e.key === 'Enter') handleSendCode();
+        });
+
+        authCodeInput.addEventListener('keypress', (e) => {
+          if (e.key === 'Enter') handleVerifyCode();
+        });
+
+        authCodeInput.addEventListener('input', function() {
+          this.value = this.value.replace(/[^0-9]/g, '');
+        });
+
+        // Close modal on overlay click
+        authModal.addEventListener('click', (e) => {
+          if (e.target === authModal) {
+            // Don't close if they have a pending prompt
+            if (!pendingPrompt) {
+              authModal.classList.remove('active');
+            }
+          }
+        });
+      }
+
+      function updateUIForAuthenticatedUser() {
+        mySitesLink.classList.add('show');
+        userMenu.classList.add('authenticated');
+        if (currentUser && currentUser.email) {
+          userAvatar.textContent = currentUser.email.charAt(0).toUpperCase();
+        }
+      }
+
+      function handleSend() {
+        const prompt = chatInput.value.trim();
+        if (!prompt) return;
+
+        if (!isAuthenticated) {
+          // Store prompt and show auth modal
+          pendingPrompt = prompt;
+          localStorage.setItem('pendingPrompt', prompt);
+          showAuthModal();
+          return;
+        }
+
+        processPrompt(prompt);
+      }
+
+      function processPrompt(prompt) {
+        // Hide welcome, show user message
+        welcomeMessage.style.display = 'none';
+        addMessage(prompt, 'user');
+        chatInput.value = '';
+        chatInput.style.height = 'auto';
+
+        // Show generating indicator
+        generatingIndicator.classList.add('active');
+        sendButton.disabled = true;
+
+        // Create site and generate
+        createSiteAndGenerate(prompt);
+      }
+
+      function addMessage(text, type) {
+        const msg = document.createElement('div');
+        msg.className = `message ${type}`;
+        msg.textContent = text;
+        chatMessages.insertBefore(msg, generatingIndicator);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+      }
+
+      async function createSiteAndGenerate(prompt) {
+        try {
+          // Create a new site
+          const createResponse = await fetch('/api/sites', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              name: 'My Website',
+              initialPrompt: prompt
+            })
+          });
+
+          if (!createResponse.ok) {
+            throw new Error('Failed to create site');
+          }
+
+          const site = await createResponse.json();
+          currentSiteId = site.id;
+
+          // Now chat with the AI to generate the site
+          const chatResponse = await fetch(`/api/sites/${site.id}/chat`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ message: prompt })
+          });
+
+          if (!chatResponse.ok) {
+            throw new Error('Failed to generate website');
+          }
+
+          const result = await chatResponse.json();
+
+          generatingIndicator.classList.remove('active');
+          sendButton.disabled = false;
+
+          if (result.siteConfig) {
+            currentSiteConfig = result.siteConfig;
+            renderPreview(result.siteConfig);
+            updatePreviewUrl(site.slug);
+            publishBtn.style.display = 'block';
+          }
+
+          if (result.message) {
+            addMessage(result.message, 'assistant');
+          }
+
+        } catch (error) {
+          console.error('Error:', error);
+          generatingIndicator.classList.remove('active');
+          sendButton.disabled = false;
+          addMessage('Sorry, something went wrong. Please try again.', 'assistant');
+        }
+      }
+
+      function renderPreview(config) {
+        previewPlaceholder.style.display = 'none';
+        previewIframeContainer.classList.add('active');
+
+        const html = generatePreviewHTML(config);
+        previewIframe.srcdoc = html;
+        previewUrl.classList.add('live');
+      }
+
+      function updatePreviewUrl(slug) {
+        previewUrlText.textContent = `${slug}.devopser.io`;
+      }
+
+      function generatePreviewHTML(config) {
+        const theme = config.theme || {};
+        const sections = config.sections || [];
+
+        let sectionsHTML = sections.map(section => {
+          switch (section.type) {
+            case 'hero':
+              return generateHeroHTML(section.content, theme);
+            case 'features':
+              return generateFeaturesHTML(section.content, theme);
+            case 'about':
+              return generateAboutHTML(section.content, theme);
+            case 'pricing':
+              return generatePricingHTML(section.content, theme);
+            case 'contact':
+              return generateContactHTML(section.content, theme);
+            case 'footer':
+              return generateFooterHTML(section.content, theme);
+            default:
+              return '';
+          }
+        }).join('');
+
+        return `
+          <!DOCTYPE html>
+          <html>
+          <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>${config.siteName || 'Preview'}</title>
+            <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+            <style>
+              * { margin: 0; padding: 0; box-sizing: border-box; }
+              body {
+                font-family: '${theme.fontFamily || 'Inter'}', sans-serif;
+                color: #1a1a1a;
+                line-height: 1.6;
+              }
+              .container { max-width: 1200px; margin: 0 auto; padding: 0 20px; }
+              .btn {
+                display: inline-block;
+                padding: 12px 24px;
+                background: ${theme.primaryColor || '#667eea'};
+                color: white;
+                text-decoration: none;
+                border-radius: 8px;
+                font-weight: 500;
+                transition: transform 0.2s;
+              }
+              .btn:hover { transform: translateY(-2px); }
+              .btn-outline {
+                background: transparent;
+                border: 2px solid ${theme.primaryColor || '#667eea'};
+                color: ${theme.primaryColor || '#667eea'};
+              }
+            </style>
+          </head>
+          <body>
+            ${sectionsHTML}
+          </body>
+          </html>
+        `;
+      }
+
+      function generateHeroHTML(content, theme) {
+        return `
+          <section style="padding: 80px 20px; background: linear-gradient(135deg, ${theme.primaryColor || '#667eea'}15 0%, ${theme.secondaryColor || '#764ba2'}15 100%); text-align: center;">
+            <div class="container">
+              <h1 style="font-size: 3rem; font-weight: 700; margin-bottom: 20px; color: #1a1a1a;">${content.headline || 'Welcome'}</h1>
+              <p style="font-size: 1.25rem; color: #666; margin-bottom: 30px; max-width: 600px; margin-left: auto; margin-right: auto;">${content.subheadline || ''}</p>
+              ${content.ctaText ? `<a href="${content.ctaLink || '#'}" class="btn">${content.ctaText}</a>` : ''}
+            </div>
+          </section>
+        `;
+      }
+
+      function generateFeaturesHTML(content, theme) {
+        const items = content.items || [];
+        const itemsHTML = items.map(item => `
+          <div style="flex: 1; min-width: 250px; padding: 30px; background: white; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.08);">
+            <div style="width: 50px; height: 50px; background: ${theme.primaryColor || '#667eea'}20; border-radius: 12px; margin-bottom: 16px; display: flex; align-items: center; justify-content: center; color: ${theme.primaryColor || '#667eea'}; font-size: 1.5rem;">
+              ★
+            </div>
+            <h3 style="font-size: 1.25rem; margin-bottom: 10px;">${item.title || ''}</h3>
+            <p style="color: #666;">${item.description || ''}</p>
+          </div>
+        `).join('');
+
+        return `
+          <section style="padding: 80px 20px; background: #f8f9fa;">
+            <div class="container">
+              <h2 style="text-align: center; font-size: 2rem; margin-bottom: 50px;">${content.title || 'Features'}</h2>
+              <div style="display: flex; flex-wrap: wrap; gap: 24px; justify-content: center;">
+                ${itemsHTML}
+              </div>
+            </div>
+          </section>
+        `;
+      }
+
+      function generateAboutHTML(content, theme) {
+        return `
+          <section style="padding: 80px 20px;">
+            <div class="container" style="display: flex; flex-wrap: wrap; gap: 50px; align-items: center;">
+              <div style="flex: 1; min-width: 300px;">
+                <h2 style="font-size: 2rem; margin-bottom: 20px;">${content.title || 'About Us'}</h2>
+                <p style="color: #666; margin-bottom: 20px;">${content.description || ''}</p>
+                ${content.ctaText ? `<a href="${content.ctaLink || '#'}" class="btn">${content.ctaText}</a>` : ''}
+              </div>
+              ${content.imageUrl ? `<div style="flex: 1; min-width: 300px;"><img src="${content.imageUrl}" style="width: 100%; border-radius: 12px;" alt="About"></div>` : ''}
+            </div>
+          </section>
+        `;
+      }
+
+      function generatePricingHTML(content, theme) {
+        const tiers = content.tiers || [];
+        const tiersHTML = tiers.map((tier, i) => `
+          <div style="flex: 1; min-width: 280px; max-width: 350px; padding: 40px 30px; background: ${tier.featured ? theme.primaryColor || '#667eea' : 'white'}; color: ${tier.featured ? 'white' : '#1a1a1a'}; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); ${tier.featured ? 'transform: scale(1.05);' : ''}">
+            <h3 style="font-size: 1.5rem; margin-bottom: 10px;">${tier.name || ''}</h3>
+            <div style="font-size: 2.5rem; font-weight: 700; margin-bottom: 20px;">${tier.price || ''}</div>
+            <ul style="list-style: none; margin-bottom: 30px;">
+              ${(tier.features || []).map(f => `<li style="padding: 8px 0; border-bottom: 1px solid ${tier.featured ? 'rgba(255,255,255,0.2)' : '#eee'};">✓ ${f}</li>`).join('')}
+            </ul>
+            <a href="#" class="btn ${tier.featured ? '' : 'btn-outline'}" style="${tier.featured ? 'background: white; color: ' + (theme.primaryColor || '#667eea') : ''}">${tier.ctaText || 'Get Started'}</a>
+          </div>
+        `).join('');
+
+        return `
+          <section style="padding: 80px 20px; background: #f8f9fa;">
+            <div class="container">
+              <h2 style="text-align: center; font-size: 2rem; margin-bottom: 50px;">${content.title || 'Pricing'}</h2>
+              <div style="display: flex; flex-wrap: wrap; gap: 24px; justify-content: center; align-items: center;">
+                ${tiersHTML}
+              </div>
+            </div>
+          </section>
+        `;
+      }
+
+      function generateContactHTML(content, theme) {
+        return `
+          <section style="padding: 80px 20px;">
+            <div class="container" style="max-width: 600px;">
+              <h2 style="text-align: center; font-size: 2rem; margin-bottom: 20px;">${content.title || 'Contact Us'}</h2>
+              <p style="text-align: center; color: #666; margin-bottom: 40px;">${content.description || ''}</p>
+              <form style="display: flex; flex-direction: column; gap: 20px;">
+                <input type="text" placeholder="Your Name" style="padding: 14px; border: 1px solid #ddd; border-radius: 8px; font-size: 1rem;">
+                <input type="email" placeholder="Your Email" style="padding: 14px; border: 1px solid #ddd; border-radius: 8px; font-size: 1rem;">
+                <textarea placeholder="Your Message" rows="5" style="padding: 14px; border: 1px solid #ddd; border-radius: 8px; font-size: 1rem; resize: vertical;"></textarea>
+                <button type="submit" class="btn" style="border: none; cursor: pointer; font-size: 1rem;">${content.buttonText || 'Send Message'}</button>
+              </form>
+            </div>
+          </section>
+        `;
+      }
+
+      function generateFooterHTML(content, theme) {
+        return `
+          <footer style="padding: 40px 20px; background: #1a1a1a; color: white; text-align: center;">
+            <div class="container">
+              <p style="margin-bottom: 10px;">${content.companyName || ''}</p>
+              <p style="color: #888; font-size: 0.9rem;">${content.copyright || '© 2024 All rights reserved.'}</p>
+            </div>
+          </footer>
+        `;
+      }
+
+      // Auth handlers
+      function showAuthModal() {
+        authModal.classList.add('active');
+        authEmailInput.focus();
+      }
+
+      function showAuthStep(step) {
+        if (step === 'email') {
+          authEmailStep.classList.add('active');
+          authCodeStep.classList.remove('active');
+          hideAuthErrors();
+          authEmailInput.focus();
+        } else {
+          authEmailStep.classList.remove('active');
+          authCodeStep.classList.add('active');
+          hideAuthErrors();
+          authCodeInput.focus();
+        }
+      }
+
+      function hideAuthErrors() {
+        authError.classList.remove('show');
+        authSuccess.classList.remove('show');
+        authCodeError.classList.remove('show');
+        authCodeSuccess.classList.remove('show');
+      }
+
+      async function handleSendCode() {
+        const email = authEmailInput.value.trim();
+        if (!email || !email.includes('@')) {
+          authError.textContent = 'Please enter a valid email';
+          authError.classList.add('show');
+          return;
+        }
+
+        authSendCodeBtn.disabled = true;
+        authSendCodeBtn.textContent = 'Sending...';
+        hideAuthErrors();
+
+        try {
+          const response = await fetch('/auth/magic-link/request', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email })
+          });
+
+          const data = await response.json();
+
+          if (data.success) {
+            authEmail = email;
+            authEmailDisplay.textContent = email;
+            showAuthStep('code');
+          } else {
+            authError.textContent = data.error || 'Failed to send code';
+            authError.classList.add('show');
+          }
+        } catch (error) {
+          authError.textContent = 'Network error. Please try again.';
+          authError.classList.add('show');
+        }
+
+        authSendCodeBtn.disabled = false;
+        authSendCodeBtn.textContent = 'Continue';
+      }
+
+      async function handleVerifyCode() {
+        const code = authCodeInput.value.trim();
+        if (code.length !== 6 || !/^\d{6}$/.test(code)) {
+          authCodeError.textContent = 'Please enter a valid 6-digit code';
+          authCodeError.classList.add('show');
+          return;
+        }
+
+        authVerifyCodeBtn.disabled = true;
+        authVerifyCodeBtn.textContent = 'Verifying...';
+        hideAuthErrors();
+
+        try {
+          const response = await fetch('/auth/magic-link/verify', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email: authEmail, code })
+          });
+
+          const data = await response.json();
+
+          if (data.success) {
+            isAuthenticated = true;
+            currentUser = { email: authEmail };
+            authModal.classList.remove('active');
+            updateUIForAuthenticatedUser();
+
+            // Process the pending prompt
+            if (pendingPrompt) {
+              localStorage.removeItem('pendingPrompt');
+              processPrompt(pendingPrompt);
+              pendingPrompt = null;
+            }
+          } else if (data.requiresMfa) {
+            // Handle MFA - redirect to MFA page
+            window.location.href = data.redirect || '/auth/mfa-verify';
+          } else {
+            authCodeError.textContent = data.error || 'Invalid code';
+            authCodeError.classList.add('show');
+          }
+        } catch (error) {
+          authCodeError.textContent = 'Network error. Please try again.';
+          authCodeError.classList.add('show');
+        }
+
+        authVerifyCodeBtn.disabled = false;
+        authVerifyCodeBtn.textContent = 'Verify & Create Website';
+      }
+
+      // Initialize on load
+      init();
+    })();
+  </script>
+</body>
+</html>

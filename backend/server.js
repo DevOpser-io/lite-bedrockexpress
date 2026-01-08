@@ -26,6 +26,7 @@ const authRoutes = require('./routes/auth');
 const mobileAuthRoutes = require('./routes/mobileAuth');
 const adminRoutes = require('./routes/admin');
 const adminPanelRoutes = require('./routes/admin-panel');
+const sitesRoutes = require('./routes/sites');
 
 const listEndpoints = require('express-list-endpoints');
 
@@ -396,6 +397,7 @@ app.use((err, req, res, next) => {
     app.use((req, res, next) => {
       // Paths that don't require authentication
       const publicPaths = [
+        '/',                    // Landing page (builder interface)
         '/auth/login',
         '/auth/signup',
         '/auth/verify-email',
@@ -496,6 +498,9 @@ app.use((err, req, res, next) => {
     // Now that session is configured, set up routes
     app.use('/api', apiRoutes);
 
+    // Sites API Routes - for DevOpser Lite website builder
+    app.use('/api/sites', sitesRoutes);
+
     // Auth Routes - for authentication functionality
     app.use('/auth', authRoutes);
 
@@ -536,6 +541,49 @@ app.use((err, req, res, next) => {
     
     // Chat Routes - specifically for chat functionality
     app.use('/', chatRoutes);
+
+    // DevOpser Lite Routes - Sites Dashboard and Builder
+    app.get('/sites', async (req, res) => {
+      if (!req.isAuthenticated()) {
+        return res.redirect('/auth/login');
+      }
+      try {
+        const sites = await db.Site.findAll({
+          where: { userId: req.user.id },
+          order: [['created_at', 'DESC']]
+        });
+        res.render('sites-dashboard', {
+          user: req.user,
+          sites: sites.map(s => s.toPublicJSON()),
+          cspNonce: res.locals.cspNonce
+        });
+      } catch (error) {
+        console.error('[Sites] Error loading dashboard:', error);
+        res.status(500).render('error', { message: 'Failed to load sites' });
+      }
+    });
+
+    app.get('/sites/:id/builder', async (req, res) => {
+      if (!req.isAuthenticated()) {
+        return res.redirect('/auth/login');
+      }
+      try {
+        const site = await db.Site.findOne({
+          where: { id: req.params.id, userId: req.user.id }
+        });
+        if (!site) {
+          return res.status(404).render('error', { message: 'Site not found' });
+        }
+        res.render('builder', {
+          user: req.user,
+          site: site.toPublicJSON(),
+          cspNonce: res.locals.cspNonce
+        });
+      } catch (error) {
+        console.error('[Sites] Error loading builder:', error);
+        res.status(500).render('error', { message: 'Failed to load builder' });
+      }
+    });
     
 
     

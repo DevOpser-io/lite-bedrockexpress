@@ -306,7 +306,7 @@ router.post('/magic-link/verify', [
         return res.json({
           success: true,
           message: 'Sign-in successful!',
-          redirect: '/chat'
+          redirect: '/'
         });
       });
     });
@@ -352,10 +352,10 @@ router.get('/magic-link/auto-verify', async (req, res) => {
       });
     }
 
-    // If user is already logged in as the same account, just redirect to chat
+    // If user is already logged in as the same account, just redirect to landing
     if (req.isAuthenticated() && req.user && req.user.email === normalizedEmail) {
-      console.log(`User ${normalizedEmail} is already logged in, redirecting to chat`);
-      return res.redirect('/chat');
+      console.log(`User ${normalizedEmail} is already logged in, redirecting to landing`);
+      return res.redirect('/');
     }
 
     // Validate code format
@@ -440,8 +440,8 @@ router.get('/magic-link/auto-verify', async (req, res) => {
           return res.redirect('/auth/login');
         }
 
-        console.log(`[MAGIC LINK] Session saved successfully for ${user.email}, session ID: ${req.session.id}, redirecting to /chat`);
-        return res.redirect('/chat');
+        console.log(`[MAGIC LINK] Session saved successfully for ${user.email}, session ID: ${req.session.id}, redirecting to landing page`);
+        return res.redirect('/');
       });
     });
 
@@ -657,7 +657,7 @@ router.get('/mfa-backup-codes', async (req, res) => {
     returnUrl = '/account';
     delete req.session.returnToAccount;
   } else {
-    returnUrl = req.session.returnTo || '/chat';
+    returnUrl = req.session.returnTo || '/sites';
   }
 
   const csrfToken = req.csrfToken ? req.csrfToken() : '';
@@ -771,7 +771,7 @@ router.get('/mfa-verify', async (req, res, next) => {
   try {
     // Check if user is already authenticated with MFA verified
     if (req.isAuthenticated() && req.session.mfaVerified) {
-      const returnUrl = req.session.returnTo || '/chat';
+      const returnUrl = req.session.returnTo || '/sites';
       delete req.session.returnTo;
       return res.redirect(returnUrl);
     }
@@ -848,7 +848,7 @@ router.post('/mfa-verify', async (req, res, next) => {
           // Conversations are now created only when users send their first message
           
           // Redirect to the original URL if it exists, otherwise to chat
-          const redirectUrl = req.session.returnTo || '/chat';
+          const redirectUrl = req.session.returnTo || '/';
           delete req.session.returnTo; // Clean up
           
           // Save session before redirect to ensure all data is persisted
@@ -864,7 +864,7 @@ router.post('/mfa-verify', async (req, res, next) => {
         } catch (convError) {
           console.error('Error creating initial conversation:', convError);
           // Continue with redirect even if conversation creation fails
-          const redirectUrl = req.session.returnTo || '/chat';
+          const redirectUrl = req.session.returnTo || '/';
           delete req.session.returnTo;
           
           // Save session before redirect to ensure all data is persisted
@@ -879,7 +879,7 @@ router.post('/mfa-verify', async (req, res, next) => {
         }
       }).catch(saveErr => {
         console.error('Error saving user after MFA verify:', saveErr);
-        const redirectUrl = req.session.returnTo || '/chat';
+        const redirectUrl = req.session.returnTo || '/';
         
         // Save session before redirect to ensure all data is persisted
         console.log(`Saving session before redirect to ${redirectUrl} (error handler), session ID: ${req.session.id}`);
@@ -1307,7 +1307,7 @@ router.get('/google/callback', async (req, res, next) => {
       }
 
       // Regular web OAuth flow
-      const returnTo = req.session.returnTo || '/chat';
+      const returnTo = req.session.returnTo || '/sites';
       delete req.session.returnTo;
 
       // Save session before redirect
