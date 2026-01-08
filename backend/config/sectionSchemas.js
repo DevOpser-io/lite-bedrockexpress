@@ -5,11 +5,17 @@
  *              that can be added to a DevOpser Lite website.
  */
 
-// Available icon names for features
+// Available icon names for features (Bootstrap Icons names)
 const AVAILABLE_ICONS = [
-  'rocket', 'star', 'heart', 'check', 'shield', 'lightning',
-  'globe', 'users', 'clock', 'chart', 'lock', 'cloud',
-  'code', 'mobile', 'settings', 'support', 'book', 'gift'
+  'rocket', 'star', 'heart', 'check', 'shield', 'lightning-charge',
+  'globe', 'people', 'clock', 'bar-chart', 'lock', 'cloud',
+  'code-slash', 'phone', 'gear', 'headset', 'book', 'gift',
+  'cpu', 'database', 'envelope', 'eye', 'file-text', 'flag',
+  'folder', 'house', 'image', 'key', 'layers', 'link',
+  'map', 'megaphone', 'moon', 'palette', 'pencil', 'person',
+  'pie-chart', 'pin-map', 'play', 'plus-circle', 'power', 'puzzle',
+  'search', 'send', 'share', 'shop', 'speedometer', 'sun',
+  'terminal', 'trophy', 'truck', 'wifi', 'wrench', 'zoom-in'
 ];
 
 // Section type definitions
@@ -48,7 +54,7 @@ const SECTION_SCHEMAS = {
       items: [
         { icon: 'rocket', title: 'Fast', description: 'Lightning-fast performance' },
         { icon: 'shield', title: 'Secure', description: 'Enterprise-grade security' },
-        { icon: 'support', title: 'Support', description: '24/7 customer support' }
+        { icon: 'headset', title: 'Support', description: '24/7 customer support' }
       ]
     },
     schema: {

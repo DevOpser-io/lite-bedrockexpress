@@ -345,6 +345,100 @@
       margin-bottom: 4px;
     }
 
+    /* Icon picker popup */
+    .icon-picker-popup {
+      position: fixed;
+      background: white;
+      border: 1px solid #dee2e6;
+      border-radius: 8px;
+      padding: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      z-index: 1000;
+      display: none;
+      width: 280px;
+    }
+
+    .icon-picker-popup.active {
+      display: block;
+    }
+
+    .icon-picker-popup .popup-title {
+      margin-bottom: 8px;
+      font-weight: 600;
+      font-size: 13px;
+    }
+
+    .icon-picker-grid {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 4px;
+      max-height: 200px;
+      overflow-y: auto;
+    }
+
+    .icon-picker-item {
+      width: 36px;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid #dee2e6;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 18px;
+      color: #495057;
+      transition: all 0.15s;
+    }
+
+    .icon-picker-item:hover {
+      background: #e9ecef;
+      border-color: #0d6efd;
+    }
+
+    .icon-picker-item.selected {
+      background: #0d6efd;
+      color: white;
+      border-color: #0d6efd;
+    }
+
+    /* Editable icon styling */
+    [data-editable-icon] {
+      cursor: pointer;
+      transition: transform 0.2s, background 0.2s;
+      border-radius: 50%;
+      padding: 8px;
+    }
+
+    [data-editable-icon]:hover {
+      background: rgba(13, 110, 253, 0.1);
+      transform: scale(1.1);
+    }
+
+    [data-editable-icon]::after {
+      content: 'Click to change';
+      position: absolute;
+      bottom: -24px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #0d6efd;
+      color: white;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 11px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s;
+      white-space: nowrap;
+    }
+
+    [data-editable-icon]:hover::after {
+      opacity: 1;
+    }
+
+    .feature-icon {
+      position: relative;
+    }
+
     /* Save indicator toast */
     .save-indicator {
       position: fixed;
@@ -412,6 +506,135 @@
     .section-contact {
       padding: 4rem 2rem;
       background: #fff;
+    }
+
+    /* Testimonials section */
+    .section-testimonials {
+      padding: 4rem 2rem;
+      background: #f8f9fa;
+    }
+
+    .section-testimonials h2 {
+      text-align: center;
+      font-size: 2rem;
+      margin-bottom: 3rem;
+    }
+
+    .testimonials-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 2rem;
+      max-width: 1000px;
+      margin: 0 auto;
+    }
+
+    .testimonial-item {
+      background: white;
+      padding: 1.5rem;
+      border-radius: 0.5rem;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .testimonial-quote {
+      font-style: italic;
+      color: #4a5568;
+      margin-bottom: 1rem;
+      line-height: 1.6;
+    }
+
+    .testimonial-author {
+      font-weight: 600;
+      color: #1a202c;
+    }
+
+    .testimonial-role {
+      font-size: 0.875rem;
+      color: #718096;
+    }
+
+    /* Pricing section */
+    .section-pricing {
+      padding: 4rem 2rem;
+      background: #fff;
+    }
+
+    .section-pricing h2 {
+      text-align: center;
+      font-size: 2rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .section-pricing .pricing-subtitle {
+      text-align: center;
+      color: #6c757d;
+      margin-bottom: 3rem;
+    }
+
+    .pricing-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 2rem;
+      max-width: 900px;
+      margin: 0 auto;
+    }
+
+    .pricing-item {
+      background: #f8f9fa;
+      padding: 2rem;
+      border-radius: 0.5rem;
+      text-align: center;
+      border: 2px solid transparent;
+    }
+
+    .pricing-item.highlighted {
+      border-color: var(--primary-color, #3B82F6);
+      background: white;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+
+    .pricing-name {
+      font-size: 1.25rem;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+    }
+
+    .pricing-price {
+      font-size: 2.5rem;
+      font-weight: 700;
+      color: var(--primary-color, #3B82F6);
+    }
+
+    .pricing-period {
+      font-size: 1rem;
+      color: #6c757d;
+    }
+
+    .pricing-features {
+      list-style: none;
+      padding: 0;
+      margin: 1.5rem 0;
+      text-align: left;
+    }
+
+    .pricing-features li {
+      padding: 0.5rem 0;
+      color: #4a5568;
+    }
+
+    .pricing-features li::before {
+      content: '✓';
+      color: var(--primary-color, #3B82F6);
+      margin-right: 0.5rem;
+    }
+
+    .pricing-cta {
+      display: inline-block;
+      padding: 0.75rem 2rem;
+      background: var(--primary-color, #3B82F6);
+      color: white;
+      text-decoration: none;
+      border-radius: 0.5rem;
+      font-weight: 600;
     }
 
     .section-footer {
@@ -665,7 +888,7 @@
                 <div class="features-grid">
                   <% (section.content.items || []).forEach((item, itemIndex) => { %>
                   <div class="feature-item" data-item-index="<%= itemIndex %>">
-                    <div class="feature-icon"><i class="bi bi-<%= item.icon || 'star' %>"></i></div>
+                    <div class="feature-icon" data-editable-icon data-field="items.<%= itemIndex %>.icon" data-current-icon="<%= item.icon || 'star' %>"><i class="bi bi-<%= item.icon || 'star' %>"></i></div>
                     <h3 data-editable data-field="items.<%= itemIndex %>.title"><%= item.title %></h3>
                     <p data-editable data-field="items.<%= itemIndex %>.description"><%= item.description %></p>
                   </div>
@@ -676,6 +899,47 @@
               <div class="section-about" data-section-id="<%= section.id %>" data-section-type="about">
                 <h2 data-editable data-field="title"><%= section.content.title %></h2>
                 <p data-editable data-field="content"><%= section.content.content %></p>
+              </div>
+              <% } else if (section.type === 'testimonials') { %>
+              <div class="section-testimonials" data-section-id="<%= section.id %>" data-section-type="testimonials">
+                <h2 data-editable data-field="title"><%= section.content.title || 'Testimonials' %></h2>
+                <div class="testimonials-grid">
+                  <% (section.content.items || []).forEach((item, itemIndex) => { %>
+                  <div class="testimonial-item" data-item-index="<%= itemIndex %>">
+                    <p class="testimonial-quote" data-editable data-field="items.<%= itemIndex %>.quote">"<%= item.quote %>"</p>
+                    <p class="testimonial-author" data-editable data-field="items.<%= itemIndex %>.author"><%= item.author %></p>
+                    <% if (item.role) { %>
+                    <p class="testimonial-role" data-editable data-field="items.<%= itemIndex %>.role"><%= item.role %></p>
+                    <% } %>
+                  </div>
+                  <% }) %>
+                </div>
+              </div>
+              <% } else if (section.type === 'pricing') { %>
+              <div class="section-pricing" data-section-id="<%= section.id %>" data-section-type="pricing">
+                <h2 data-editable data-field="title"><%= section.content.title || 'Pricing' %></h2>
+                <% if (section.content.subtitle) { %>
+                <p class="pricing-subtitle" data-editable data-field="subtitle"><%= section.content.subtitle %></p>
+                <% } %>
+                <div class="pricing-grid">
+                  <% (section.content.items || []).forEach((plan, planIndex) => { %>
+                  <div class="pricing-item<%= plan.highlighted ? ' highlighted' : '' %>" data-item-index="<%= planIndex %>">
+                    <h3 class="plan-name" data-editable data-field="items.<%= planIndex %>.name"><%= plan.name %></h3>
+                    <div class="plan-price">
+                      <span data-editable data-field="items.<%= planIndex %>.price"><%= plan.price %></span>
+                      <span class="period" data-editable data-field="items.<%= planIndex %>.period"><%= plan.period || '' %></span>
+                    </div>
+                    <ul class="plan-features">
+                      <% (plan.features || []).forEach((feature, featureIndex) => { %>
+                      <li data-editable data-field="items.<%= planIndex %>.features.<%= featureIndex %>"><%= feature %></li>
+                      <% }) %>
+                    </ul>
+                    <% if (plan.ctaText) { %>
+                    <a href="<%= plan.ctaLink || '#' %>" class="plan-cta" data-editable-link data-field="items.<%= planIndex %>.ctaText" data-link-field="items.<%= planIndex %>.ctaLink"><%= plan.ctaText %></a>
+                    <% } %>
+                  </div>
+                  <% }) %>
+                </div>
               </div>
               <% } else if (section.type === 'contact') { %>
               <div class="section-contact" data-section-id="<%= section.id %>" data-section-type="contact">
@@ -718,6 +982,14 @@
     <div class="btn-group">
       <button class="btn-save" onclick="saveLinkEdit()">Save</button>
       <button class="btn-cancel" onclick="closeLinkEdit()">Cancel</button>
+    </div>
+  </div>
+
+  <!-- Icon Picker Popup -->
+  <div class="icon-picker-popup" id="iconPickerPopup">
+    <div class="popup-title">Choose Icon</div>
+    <div class="icon-picker-grid" id="iconPickerGrid">
+      <!-- Icons will be populated by JavaScript -->
     </div>
   </div>
 
@@ -878,8 +1150,9 @@
           html += '<h2 data-editable data-field="title">' + escapeHtml(section.content.title || '') + '</h2>';
           html += '<div class="features-grid">';
           (section.content.items || []).forEach(function(item, itemIndex) {
+            var iconName = item.icon || 'star';
             html += '<div class="feature-item" data-item-index="' + itemIndex + '">';
-            html += '<div class="feature-icon"><i class="bi bi-' + escapeHtml(item.icon || 'star') + '"></i></div>';
+            html += '<div class="feature-icon" data-editable-icon data-field="items.' + itemIndex + '.icon" data-current-icon="' + escapeHtml(iconName) + '"><i class="bi bi-' + escapeHtml(iconName) + '"></i></div>';
             html += '<h3 data-editable data-field="items.' + itemIndex + '.title">' + escapeHtml(item.title || '') + '</h3>';
             html += '<p data-editable data-field="items.' + itemIndex + '.description">' + escapeHtml(item.description || '') + '</p>';
             html += '</div>';
@@ -890,6 +1163,49 @@
           html += '<h2 data-editable data-field="title">' + escapeHtml(section.content.title || '') + '</h2>';
           html += '<p data-editable data-field="content">' + escapeHtml(section.content.content || '') + '</p>';
           html += '</div>';
+        } else if (section.type === 'testimonials') {
+          html += '<div class="section-testimonials" data-section-id="' + sectionId + '" data-section-type="testimonials">';
+          html += '<h2 data-editable data-field="title">' + escapeHtml(section.content.title || 'Testimonials') + '</h2>';
+          html += '<div class="testimonials-grid">';
+          (section.content.items || []).forEach(function(item, itemIndex) {
+            html += '<div class="testimonial-item" data-item-index="' + itemIndex + '">';
+            html += '<p class="testimonial-quote" data-editable data-field="items.' + itemIndex + '.quote">"' + escapeHtml(item.quote || '') + '"</p>';
+            html += '<p class="testimonial-author" data-editable data-field="items.' + itemIndex + '.author">' + escapeHtml(item.author || '') + '</p>';
+            if (item.role) {
+              html += '<p class="testimonial-role" data-editable data-field="items.' + itemIndex + '.role">' + escapeHtml(item.role) + '</p>';
+            }
+            html += '</div>';
+          });
+          html += '</div></div>';
+        } else if (section.type === 'pricing') {
+          html += '<div class="section-pricing" data-section-id="' + sectionId + '" data-section-type="pricing">';
+          html += '<h2 data-editable data-field="title">' + escapeHtml(section.content.title || 'Pricing') + '</h2>';
+          if (section.content.subtitle) {
+            html += '<p class="pricing-subtitle" data-editable data-field="subtitle">' + escapeHtml(section.content.subtitle) + '</p>';
+          }
+          html += '<div class="pricing-grid">';
+          (section.content.items || []).forEach(function(item, itemIndex) {
+            var itemClass = item.highlighted ? 'pricing-item highlighted' : 'pricing-item';
+            html += '<div class="' + itemClass + '" data-item-index="' + itemIndex + '">';
+            html += '<p class="pricing-name" data-editable data-field="items.' + itemIndex + '.name">' + escapeHtml(item.name || '') + '</p>';
+            html += '<p><span class="pricing-price" data-editable data-field="items.' + itemIndex + '.price">' + escapeHtml(item.price || '') + '</span>';
+            if (item.period) {
+              html += '<span class="pricing-period">' + escapeHtml(item.period) + '</span>';
+            }
+            html += '</p>';
+            if (item.features && item.features.length > 0) {
+              html += '<ul class="pricing-features">';
+              item.features.forEach(function(feature) {
+                html += '<li>' + escapeHtml(feature) + '</li>';
+              });
+              html += '</ul>';
+            }
+            if (item.ctaText) {
+              html += '<a href="' + escapeHtml(item.ctaLink || '#') + '" class="pricing-cta">' + escapeHtml(item.ctaText) + '</a>';
+            }
+            html += '</div>';
+          });
+          html += '</div></div>';
         } else if (section.type === 'contact') {
           html += '<div class="section-contact" data-section-id="' + sectionId + '" data-section-type="contact">';
           html += '<h2 data-editable data-field="title">' + escapeHtml(section.content.title || '') + '</h2>';
@@ -956,6 +1272,15 @@
       links.forEach(function(el) {
         el.addEventListener('click', handleLinkClick);
       });
+
+      // Icon editable elements
+      var icons = previewFrame.querySelectorAll('[data-editable-icon]');
+      icons.forEach(function(el) {
+        el.addEventListener('click', handleIconClick);
+      });
+
+      // Initialize icon picker grid
+      initIconPicker();
     }
 
     // Handle click on editable text element
@@ -1069,6 +1394,111 @@
       document.getElementById('linkEditPopup').classList.remove('active');
       currentLinkElement = null;
     }
+
+    // Icon picker functionality
+    var currentIconElement = null;
+    var availableIcons = [
+      'rocket', 'star', 'heart', 'check', 'shield', 'lightning-charge',
+      'globe', 'people', 'clock', 'bar-chart', 'lock', 'cloud',
+      'code-slash', 'phone', 'gear', 'headset', 'book', 'gift',
+      'cpu', 'database', 'envelope', 'eye', 'file-text', 'flag',
+      'folder', 'house', 'image', 'key', 'layers', 'link',
+      'map', 'megaphone', 'moon', 'palette', 'pencil', 'person',
+      'pie-chart', 'pin-map', 'play', 'plus-circle', 'power', 'puzzle',
+      'search', 'send', 'share', 'shop', 'speedometer', 'sun',
+      'terminal', 'trophy', 'truck', 'wifi', 'wrench', 'zoom-in'
+    ];
+
+    // Initialize icon picker grid
+    function initIconPicker() {
+      var grid = document.getElementById('iconPickerGrid');
+      if (!grid) return;
+
+      grid.innerHTML = '';
+      availableIcons.forEach(function(icon) {
+        var item = document.createElement('div');
+        item.className = 'icon-picker-item';
+        item.setAttribute('data-icon', icon);
+        item.innerHTML = '<i class="bi bi-' + icon + '"></i>';
+        item.onclick = function() { selectIcon(icon); };
+        grid.appendChild(item);
+      });
+    }
+
+    // Handle click on editable icon
+    function handleIconClick(e) {
+      e.preventDefault();
+      e.stopPropagation();
+
+      currentIconElement = e.currentTarget;
+      var popup = document.getElementById('iconPickerPopup');
+      var currentIcon = currentIconElement.getAttribute('data-current-icon') || 'star';
+
+      // Update selected state in grid
+      var items = document.querySelectorAll('.icon-picker-item');
+      items.forEach(function(item) {
+        item.classList.remove('selected');
+        if (item.getAttribute('data-icon') === currentIcon) {
+          item.classList.add('selected');
+        }
+      });
+
+      // Position popup near the element
+      var rect = currentIconElement.getBoundingClientRect();
+      popup.style.top = (rect.bottom + 10) + 'px';
+      popup.style.left = Math.max(10, rect.left - 100) + 'px';
+      popup.classList.add('active');
+    }
+
+    // Select icon from picker
+    function selectIcon(iconName) {
+      if (!currentIconElement) return;
+
+      // Update the icon element
+      var iconEl = currentIconElement.querySelector('i');
+      if (iconEl) {
+        iconEl.className = 'bi bi-' + iconName;
+      }
+      currentIconElement.setAttribute('data-current-icon', iconName);
+
+      // Save to config
+      var section = currentIconElement.closest('[data-section-id]');
+      var sectionId = section.getAttribute('data-section-id');
+      var field = currentIconElement.getAttribute('data-field');
+
+      // Handle nested field (items.0.icon)
+      var parts = field.split('.');
+      if (parts[0] === 'items' && parts.length >= 3) {
+        var itemIndex = parseInt(parts[1]);
+        var currentSection = siteData.draftConfig.sections.find(s => s.id === sectionId);
+        if (currentSection && currentSection.content.items) {
+          var items = JSON.parse(JSON.stringify(currentSection.content.items));
+          items[itemIndex].icon = iconName;
+          saveToBackend(sectionId, { items: items });
+        }
+      }
+
+      closeIconPicker();
+    }
+
+    // Close icon picker popup
+    function closeIconPicker() {
+      document.getElementById('iconPickerPopup').classList.remove('active');
+      currentIconElement = null;
+    }
+
+    // Close popups when clicking outside
+    document.addEventListener('click', function(e) {
+      var linkPopup = document.getElementById('linkEditPopup');
+      var iconPopup = document.getElementById('iconPickerPopup');
+
+      if (linkPopup.classList.contains('active') && !linkPopup.contains(e.target) && !e.target.hasAttribute('data-editable-link')) {
+        closeLinkEdit();
+      }
+      if (iconPopup.classList.contains('active') && !iconPopup.contains(e.target) && !e.target.closest('[data-editable-icon]')) {
+        closeIconPicker();
+      }
+    });
 
     // Save text edit to config
     function saveTextEdit(el, newContent) {
