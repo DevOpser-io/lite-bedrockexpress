@@ -243,6 +243,11 @@ router.delete('/:id', ensureAuthenticated, async (req, res) => {
     const siteId = site.id;
     const siteName = site.name;
 
+    // Delete related records first (deployments, images)
+    await db.Deployment.destroy({ where: { siteId: siteId } });
+    await db.SiteImage.destroy({ where: { siteId: siteId } });
+
+    // Now delete the site
     await site.destroy();
 
     console.log(`[Sites] Deleted site ${siteId} (${siteName})`);
