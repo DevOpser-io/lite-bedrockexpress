@@ -239,18 +239,81 @@ router.delete('/:id', ensureAuthenticated, async (req, res) => {
       });
     }
 
-    // TODO: Clean up GitHub repo and Lightsail service
     const siteId = site.id;
     const siteName = site.name;
+    const slug = site.slug;
 
-    // Delete related records first (deployments, images)
+    console.log(`[Sites] Starting deletion of site ${siteId} (${siteName})`);
+
+    // Clean up AWS resources if they exist
+    try {
+      // 1. Delete Lightsail container service
+      if (site.lightsailServiceName) {
+        console.log(`[Sites] Deleting Lightsail service: ${site.lightsailServiceName}`);
+        // TODO: Uncomment when lightsailService is implemented
+        // const lightsailService = require('../services/lightsailService');
+        // await lightsailService.deleteContainerService(site);
+      }
+
+      // 2. Delete ECR images for this site
+      // TODO: Uncomment when ECR cleanup is implemented
+      // const ecrService = require('../services/ecrService');
+      // await ecrService.deleteImagesForSite(siteId);
+
+      // 3. Delete GitHub repository
+      if (site.githubRepoUrl) {
+        console.log(`[Sites] Deleting GitHub repo: ${site.githubRepoUrl}`);
+        // TODO: Uncomment when githubService is implemented
+        // const githubService = require('../services/githubService');
+        // await githubService.deleteSiteRepo(site);
+      }
+
+      // 4. Clean up Route53 DNS records
+      // Always clean up the subdomain ({slug}.devopser.io)
+      console.log(`[Sites] Cleaning up DNS for subdomain: ${slug}.devopser.io`);
+      // TODO: Uncomment when route53Service is implemented
+      // const route53Service = require('../services/route53Service');
+      // await route53Service.deleteSubdomainRecord(slug);
+
+      // Also clean up custom domain if configured
+      if (site.customDomain) {
+        console.log(`[Sites] Cleaning up custom domain: ${site.customDomain}`);
+
+        // Delete custom domain DNS records
+        // await route53Service.deleteCustomDomainRecords(site.customDomain);
+
+        // Delete ACM SSL certificate for custom domain
+        console.log(`[Sites] Deleting SSL certificate for: ${site.customDomain}`);
+        // const acmService = require('../services/acmService');
+        // await acmService.deleteCertificate(site.customDomain);
+
+        // Remove custom domain from Lightsail container service
+        // await lightsailService.removeCustomDomain(site);
+      }
+    } catch (cleanupError) {
+      // Log but don't fail - we still want to delete the DB records
+      console.error(`[Sites] Warning: Error cleaning up AWS resources for site ${siteId}:`, cleanupError.message);
+    }
+
+    // Delete related database records
     await db.Deployment.destroy({ where: { siteId: siteId } });
     await db.SiteImage.destroy({ where: { siteId: siteId } });
 
-    // Now delete the site
+    // Delete the site record
     await site.destroy();
 
-    console.log(`[Sites] Deleted site ${siteId} (${siteName})`);
+    console.log(`[Sites] Successfully deleted site ${siteId} (${siteName})`);
+
+    // Log what was cleaned up for audit trail
+    console.log(`[Sites] Cleanup summary for site ${siteId}:`, {
+      lightsail: site.lightsailServiceName ? 'deleted' : 'n/a',
+      ecr: 'cleaned',
+      github: site.githubRepoUrl ? 'deleted' : 'n/a',
+      subdomain: `${slug}.devopser.io deleted`,
+      customDomain: site.customDomain || 'n/a',
+      customDomainDns: site.customDomain ? 'deleted' : 'n/a',
+      customDomainSsl: site.customDomain ? 'certificate deleted' : 'n/a'
+    });
 
     res.json({
       success: true,

@@ -6,16 +6,67 @@
  */
 
 const { BedrockRuntimeClient, ConverseCommand } = require('@aws-sdk/client-bedrock-runtime');
+const { STSClient, AssumeRoleCommand, GetCallerIdentityCommand } = require('@aws-sdk/client-sts');
 const config = require('../config');
 const { WEBSITE_TOOLS, executeTool, getAgentSystemPrompt } = require('./websiteAgentTools');
 
-// Initialize Bedrock client
+// Bedrock client with cross-account support
 let bedrockClient = null;
+let credentialsExpiration = null;
 
-function getBedrockClient() {
-  if (!bedrockClient) {
-    bedrockClient = new BedrockRuntimeClient({ region: config.bedrock.region || 'us-east-1' });
+/**
+ * Assume an IAM role and get temporary credentials
+ */
+async function assumeRole(roleArn, sessionName = 'WebsiteAgentSession') {
+  const stsClient = new STSClient({ region: config.aws.region });
+  const command = new AssumeRoleCommand({
+    RoleArn: roleArn,
+    RoleSessionName: sessionName,
+    DurationSeconds: 3600
+  });
+
+  const response = await stsClient.send(command);
+  console.log('[AgentV2] AssumeRole successful, assumed ARN:', response.AssumedRoleUser.Arn);
+
+  return {
+    accessKeyId: response.Credentials.AccessKeyId,
+    secretAccessKey: response.Credentials.SecretAccessKey,
+    sessionToken: response.Credentials.SessionToken,
+    expiration: response.Credentials.Expiration
+  };
+}
+
+/**
+ * Get or create Bedrock client with cross-account role assumption
+ */
+async function getBedrockClient() {
+  const crossAccountRoleArn = config.aws.customerCrossAccountRoleArn;
+
+  // Check if we need to refresh credentials (5 min before expiry)
+  const needsRefresh = !bedrockClient ||
+    (credentialsExpiration && new Date(credentialsExpiration) < new Date(Date.now() + 5 * 60 * 1000));
+
+  if (needsRefresh) {
+    if (crossAccountRoleArn && crossAccountRoleArn.trim() !== '') {
+      console.log('[AgentV2] Assuming cross-account role:', crossAccountRoleArn);
+      const credentials = await assumeRole(crossAccountRoleArn);
+      credentialsExpiration = credentials.expiration;
+
+      bedrockClient = new BedrockRuntimeClient({
+        region: config.aws.region || 'us-east-1',
+        credentials: {
+          accessKeyId: credentials.accessKeyId,
+          secretAccessKey: credentials.secretAccessKey,
+          sessionToken: credentials.sessionToken
+        }
+      });
+      console.log('[AgentV2] Bedrock client created with cross-account credentials');
+    } else {
+      console.log('[AgentV2] Creating Bedrock client with default credentials');
+      bedrockClient = new BedrockRuntimeClient({ region: config.aws.region || 'us-east-1' });
+    }
   }
+
   return bedrockClient;
 }
 
@@ -27,7 +78,7 @@ function getBedrockClient() {
  * @returns {Promise<Object>} - { message, newConfig, toolsUsed }
  */
 async function processWithTools(userMessage, currentConfig = null, conversationHistory = []) {
-  const client = getBedrockClient();
+  const client = await getBedrockClient();
   let workingConfig = currentConfig ? JSON.parse(JSON.stringify(currentConfig)) : null;
   const toolsUsed = [];
 

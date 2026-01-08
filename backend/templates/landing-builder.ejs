@@ -6,6 +6,8 @@
   <title>DevOpser - Build Your Website with AI</title>
   <%- include('./partials/favicon') %>
   <link rel="stylesheet" href="/static/chat-custom.css">
+  <script src="/marked.min.js"></script>
+  <script src="/purify.min.js"></script>
   <style nonce="<%= typeof cspNonce !== 'undefined' ? cspNonce : '' %>">
     * {
       margin: 0;
@@ -129,6 +131,46 @@
       background: #252525;
       color: #e0e0e0;
     }
+
+    /* Markdown styling for assistant messages */
+    .message.assistant p { margin-bottom: 0.75em; }
+    .message.assistant p:last-child { margin-bottom: 0; }
+    .message.assistant h1, .message.assistant h2, .message.assistant h3 {
+      margin: 0.5em 0;
+      font-weight: 600;
+    }
+    .message.assistant h1 { font-size: 1.3em; }
+    .message.assistant h2 { font-size: 1.15em; }
+    .message.assistant h3 { font-size: 1em; }
+    .message.assistant ul, .message.assistant ol {
+      margin: 0.5em 0;
+      padding-left: 1.5em;
+    }
+    .message.assistant li { margin: 0.25em 0; }
+    .message.assistant code {
+      background: #1a1a1a;
+      padding: 0.2em 0.4em;
+      border-radius: 4px;
+      font-family: 'Consolas', 'Monaco', monospace;
+      font-size: 0.9em;
+    }
+    .message.assistant pre {
+      background: #1a1a1a;
+      padding: 1em;
+      border-radius: 8px;
+      overflow-x: auto;
+      margin: 0.5em 0;
+    }
+    .message.assistant pre code {
+      background: transparent;
+      padding: 0;
+    }
+    .message.assistant strong { font-weight: 600; }
+    .message.assistant a {
+      color: #667eea;
+      text-decoration: none;
+    }
+    .message.assistant a:hover { text-decoration: underline; }
 
     .chat-input-container {
       padding: 20px;
@@ -937,7 +979,7 @@
       </div>
 
       <div class="preview-iframe-container" id="previewIframeContainer">
-        <iframe class="preview-iframe" id="previewIframe" sandbox="allow-scripts"></iframe>
+        <iframe class="preview-iframe" id="previewIframe"></iframe>
       </div>
     </div>
   </div>
@@ -985,8 +1027,8 @@
   <script nonce="<%= typeof cspNonce !== 'undefined' ? cspNonce : '' %>">
     (function() {
       // State
-      let isAuthenticated = <%= typeof user !== 'undefined' && user ? 'true' : 'false' %>;
-      let currentUser = <%= typeof user !== 'undefined' && user ? JSON.stringify({ email: user.email }) : 'null' %>;
+      let isAuthenticated = <%- typeof user !== 'undefined' && user ? 'true' : 'false' %>;
+      let currentUser = <%- typeof user !== 'undefined' && user ? JSON.stringify({ email: user.email }) : 'null' %>;
       let pendingPrompt = null;
       let currentSiteId = null;
       let currentSiteConfig = null;
@@ -1037,11 +1079,11 @@
           processPrompt(stored);
         }
 
-        // Example prompts
+        // Example prompts - click to fill input and submit
         document.querySelectorAll('.example-prompt').forEach(btn => {
           btn.addEventListener('click', () => {
             chatInput.value = btn.dataset.prompt;
-            chatInput.focus();
+            handleSend();
           });
         });
 
@@ -1134,7 +1176,15 @@
       function addMessage(text, type) {
         const msg = document.createElement('div');
         msg.className = `message ${type}`;
-        msg.textContent = text;
+
+        if (type === 'assistant' && typeof marked !== 'undefined') {
+          // Format assistant messages with markdown
+          const rawHtml = marked.parse(text);
+          msg.innerHTML = typeof DOMPurify !== 'undefined' ? DOMPurify.sanitize(rawHtml) : rawHtml;
+        } else {
+          msg.textContent = text;
+        }
+
         chatMessages.insertBefore(msg, generatingIndicator);
         chatMessages.scrollTop = chatMessages.scrollHeight;
       }
@@ -1194,12 +1244,23 @@
         }
       }
 
+      // Track blob URLs for cleanup
+      let currentBlobUrl = null;
+
       function renderPreview(config) {
         previewPlaceholder.style.display = 'none';
         previewIframeContainer.classList.add('active');
 
+        // Clean up previous blob URL
+        if (currentBlobUrl) {
+          URL.revokeObjectURL(currentBlobUrl);
+        }
+
         const html = generatePreviewHTML(config);
-        previewIframe.srcdoc = html;
+        // Use blob URL to bypass parent CSP
+        const blob = new Blob([html], { type: 'text/html' });
+        currentBlobUrl = URL.createObjectURL(blob);
+        previewIframe.src = currentBlobUrl;
         previewUrl.classList.add('live');
       }
 
@@ -1207,99 +1268,372 @@
         previewUrlText.textContent = `${slug}.devopser.io`;
       }
 
+      // Escape HTML to prevent XSS
+      function escapeHtml(str) {
+        if (!str) return '';
+        return String(str)
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;')
+          .replace(/'/g, '&#039;');
+      }
+
       function generatePreviewHTML(config) {
         const theme = config.theme || {};
         const sections = config.sections || [];
+        const primaryColor = theme.primaryColor || '#667eea';
+        const secondaryColor = theme.secondaryColor || '#764ba2';
+        const textColor = theme.textColor || '#1a1a1a';
+        const bgColor = theme.backgroundColor || '#ffffff';
+
+        // Generate CSS with theme colors using CSS custom properties
+        const css = `
+          :root {
+            --primary: ${primaryColor};
+            --secondary: ${secondaryColor};
+            --text: ${textColor};
+            --bg: ${bgColor};
+            --text-muted: #666666;
+            --bg-alt: #f8f9fa;
+            --border: #dee2e6;
+          }
+          * { margin: 0; padding: 0; box-sizing: border-box; }
+          body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            color: var(--text);
+            line-height: 1.6;
+            background: var(--bg);
+          }
+          .container { max-width: 1200px; margin: 0 auto; padding: 0 20px; }
+          .btn {
+            display: inline-block;
+            padding: 12px 24px;
+            background: var(--primary);
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 500;
+            transition: transform 0.2s, opacity 0.2s;
+            border: none;
+            cursor: pointer;
+            font-size: 1rem;
+          }
+          .btn:hover { transform: translateY(-2px); opacity: 0.9; }
+          .btn-outline {
+            background: transparent;
+            border: 2px solid var(--primary);
+            color: var(--primary);
+          }
+          .btn-white {
+            background: white;
+            color: var(--primary);
+          }
+
+          /* Hero Section */
+          .section-hero {
+            padding: 80px 20px;
+            background: linear-gradient(135deg, color-mix(in srgb, var(--primary) 10%, transparent) 0%, color-mix(in srgb, var(--secondary) 10%, transparent) 100%);
+            text-align: center;
+          }
+          .section-hero.dark-bg {
+            color: white;
+          }
+          .section-hero.dark-bg .hero-title {
+            color: white;
+          }
+          .section-hero.dark-bg .hero-subtitle {
+            color: rgba(255,255,255,0.85);
+          }
+          .hero-title {
+            font-size: 3rem;
+            font-weight: 700;
+            margin-bottom: 20px;
+            color: var(--text);
+          }
+          .hero-subtitle {
+            font-size: 1.25rem;
+            color: var(--text-muted);
+            margin-bottom: 30px;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+          }
+
+          /* Features Section */
+          .section-features {
+            padding: 80px 20px;
+            background: var(--bg-alt);
+          }
+          .section-title {
+            text-align: center;
+            font-size: 2rem;
+            margin-bottom: 50px;
+          }
+          .features-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 24px;
+            justify-content: center;
+          }
+          .feature-card {
+            flex: 1;
+            min-width: 250px;
+            max-width: 350px;
+            padding: 30px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+          }
+          .feature-icon {
+            width: 50px;
+            height: 50px;
+            background: color-mix(in srgb, var(--primary) 15%, transparent);
+            border-radius: 12px;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--primary);
+            font-size: 1.5rem;
+          }
+          .feature-title {
+            font-size: 1.25rem;
+            margin-bottom: 10px;
+          }
+          .feature-desc {
+            color: var(--text-muted);
+          }
+
+          /* About Section */
+          .section-about {
+            padding: 80px 20px;
+          }
+          .about-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 50px;
+            align-items: center;
+          }
+          .about-content {
+            flex: 1;
+            min-width: 300px;
+          }
+          .about-title {
+            font-size: 2rem;
+            margin-bottom: 20px;
+          }
+          .about-desc {
+            color: var(--text-muted);
+            margin-bottom: 20px;
+          }
+          .about-image {
+            flex: 1;
+            min-width: 300px;
+          }
+          .about-image img {
+            width: 100%;
+            border-radius: 12px;
+          }
+
+          /* Pricing Section */
+          .section-pricing {
+            padding: 80px 20px;
+            background: var(--bg-alt);
+          }
+          .pricing-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 24px;
+            justify-content: center;
+            align-items: center;
+          }
+          .pricing-card {
+            flex: 1;
+            min-width: 280px;
+            max-width: 350px;
+            padding: 40px 30px;
+            background: white;
+            color: var(--text);
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+          }
+          .pricing-card.featured {
+            background: var(--primary);
+            color: white;
+            transform: scale(1.05);
+          }
+          .pricing-name {
+            font-size: 1.5rem;
+            margin-bottom: 10px;
+          }
+          .pricing-price {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 20px;
+          }
+          .pricing-features {
+            list-style: none;
+            margin-bottom: 30px;
+          }
+          .pricing-features li {
+            padding: 8px 0;
+            border-bottom: 1px solid var(--border);
+          }
+          .pricing-card.featured .pricing-features li {
+            border-bottom-color: rgba(255,255,255,0.2);
+          }
+
+          /* Contact Section */
+          .section-contact {
+            padding: 80px 20px;
+          }
+          .contact-container {
+            max-width: 600px;
+            margin: 0 auto;
+          }
+          .contact-title {
+            text-align: center;
+            font-size: 2rem;
+            margin-bottom: 20px;
+          }
+          .contact-desc {
+            text-align: center;
+            color: var(--text-muted);
+            margin-bottom: 40px;
+          }
+          .contact-form {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+          }
+          .contact-form input,
+          .contact-form textarea {
+            padding: 14px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 1rem;
+            font-family: inherit;
+          }
+          .contact-form textarea {
+            resize: vertical;
+          }
+
+          /* Footer Section */
+          .section-footer {
+            padding: 40px 20px;
+            background: #1a1a1a;
+            color: white;
+            text-align: center;
+          }
+          .footer-company {
+            margin-bottom: 10px;
+          }
+          .footer-copyright {
+            color: #888;
+            font-size: 0.9rem;
+          }
+
+          /* Responsive */
+          @media (max-width: 768px) {
+            .hero-title { font-size: 2rem; }
+            .section-title { font-size: 1.5rem; }
+            .pricing-card.featured { transform: none; }
+          }
+        `;
 
         let sectionsHTML = sections.map(section => {
           switch (section.type) {
             case 'hero':
               return generateHeroHTML(section.content, theme);
             case 'features':
-              return generateFeaturesHTML(section.content, theme);
+              return generateFeaturesHTML(section.content);
             case 'about':
-              return generateAboutHTML(section.content, theme);
+              return generateAboutHTML(section.content);
             case 'pricing':
-              return generatePricingHTML(section.content, theme);
+              return generatePricingHTML(section.content);
             case 'contact':
-              return generateContactHTML(section.content, theme);
+              return generateContactHTML(section.content);
             case 'footer':
-              return generateFooterHTML(section.content, theme);
+              return generateFooterHTML(section.content);
             default:
               return '';
           }
         }).join('');
 
-        return `
-          <!DOCTYPE html>
-          <html>
-          <head>
-            <meta charset="UTF-8">
-            <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <title>${config.siteName || 'Preview'}</title>
-            <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-            <style>
-              * { margin: 0; padding: 0; box-sizing: border-box; }
-              body {
-                font-family: '${theme.fontFamily || 'Inter'}', sans-serif;
-                color: #1a1a1a;
-                line-height: 1.6;
-              }
-              .container { max-width: 1200px; margin: 0 auto; padding: 0 20px; }
-              .btn {
-                display: inline-block;
-                padding: 12px 24px;
-                background: ${theme.primaryColor || '#667eea'};
-                color: white;
-                text-decoration: none;
-                border-radius: 8px;
-                font-weight: 500;
-                transition: transform 0.2s;
-              }
-              .btn:hover { transform: translateY(-2px); }
-              .btn-outline {
-                background: transparent;
-                border: 2px solid ${theme.primaryColor || '#667eea'};
-                color: ${theme.primaryColor || '#667eea'};
-              }
-            </style>
-          </head>
-          <body>
-            ${sectionsHTML}
-          </body>
-          </html>
-        `;
+        return `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>${escapeHtml(config.siteName || 'Preview')}</title>
+  <style>${css}</style>
+</head>
+<body>
+  ${sectionsHTML}
+</body>
+</html>`;
+      }
+
+      // Helper to determine if a hex color is dark (for text contrast)
+      function isColorDark(hexColor) {
+        if (!hexColor || typeof hexColor !== 'string') return false;
+        const hex = hexColor.replace('#', '');
+        if (hex.length !== 6 && hex.length !== 3) return false;
+        let r, g, b;
+        if (hex.length === 3) {
+          r = parseInt(hex[0] + hex[0], 16);
+          g = parseInt(hex[1] + hex[1], 16);
+          b = parseInt(hex[2] + hex[2], 16);
+        } else {
+          r = parseInt(hex.substring(0, 2), 16);
+          g = parseInt(hex.substring(2, 4), 16);
+          b = parseInt(hex.substring(4, 6), 16);
+        }
+        const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+        return luminance < 0.5;
       }
 
       function generateHeroHTML(content, theme) {
+        // Use custom background colors if set, otherwise use theme colors with 20% opacity
+        const hasCustomBg = content.backgroundColorStart || content.backgroundColorEnd;
+        const bgStart = content.backgroundColorStart || theme.primaryColor || '#667eea';
+        const bgEnd = content.backgroundColorEnd || theme.secondaryColor || '#764ba2';
+        // Use full opacity for custom colors, 20% opacity for theme colors
+        const heroStyle = hasCustomBg
+          ? `background: linear-gradient(135deg, ${bgStart} 0%, ${bgEnd} 100%);`
+          : `background: linear-gradient(135deg, ${bgStart}20 0%, ${bgEnd}20 100%);`;
+
+        // Add dark-bg class if custom colors are dark (for text contrast)
+        const isDark = hasCustomBg && (isColorDark(bgStart) || isColorDark(bgEnd));
+        const heroClass = isDark ? 'section-hero dark-bg' : 'section-hero';
+
         return `
-          <section style="padding: 80px 20px; background: linear-gradient(135deg, ${theme.primaryColor || '#667eea'}15 0%, ${theme.secondaryColor || '#764ba2'}15 100%); text-align: center;">
+          <section class="${heroClass}" style="${heroStyle}">
             <div class="container">
-              <h1 style="font-size: 3rem; font-weight: 700; margin-bottom: 20px; color: #1a1a1a;">${content.headline || 'Welcome'}</h1>
-              <p style="font-size: 1.25rem; color: #666; margin-bottom: 30px; max-width: 600px; margin-left: auto; margin-right: auto;">${content.subheadline || ''}</p>
-              ${content.ctaText ? `<a href="${content.ctaLink || '#'}" class="btn">${content.ctaText}</a>` : ''}
+              <h1 class="hero-title">${escapeHtml(content.headline || 'Welcome')}</h1>
+              <p class="hero-subtitle">${escapeHtml(content.subheadline || '')}</p>
+              ${content.ctaText ? `<a href="${escapeHtml(content.ctaLink || '#')}" class="btn${isDark ? ' btn-white' : ''}">${escapeHtml(content.ctaText)}</a>` : ''}
             </div>
           </section>
         `;
       }
 
-      function generateFeaturesHTML(content, theme) {
+      function generateFeaturesHTML(content) {
         const items = content.items || [];
         const itemsHTML = items.map(item => `
-          <div style="flex: 1; min-width: 250px; padding: 30px; background: white; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.08);">
-            <div style="width: 50px; height: 50px; background: ${theme.primaryColor || '#667eea'}20; border-radius: 12px; margin-bottom: 16px; display: flex; align-items: center; justify-content: center; color: ${theme.primaryColor || '#667eea'}; font-size: 1.5rem;">
-              ★
-            </div>
-            <h3 style="font-size: 1.25rem; margin-bottom: 10px;">${item.title || ''}</h3>
-            <p style="color: #666;">${item.description || ''}</p>
+          <div class="feature-card">
+            <div class="feature-icon">★</div>
+            <h3 class="feature-title">${escapeHtml(item.title || '')}</h3>
+            <p class="feature-desc">${escapeHtml(item.description || '')}</p>
           </div>
         `).join('');
 
         return `
-          <section style="padding: 80px 20px; background: #f8f9fa;">
+          <section class="section-features">
             <div class="container">
-              <h2 style="text-align: center; font-size: 2rem; margin-bottom: 50px;">${content.title || 'Features'}</h2>
-              <div style="display: flex; flex-wrap: wrap; gap: 24px; justify-content: center;">
+              <h2 class="section-title">${escapeHtml(content.title || 'Features')}</h2>
+              <div class="features-grid">
                 ${itemsHTML}
               </div>
             </div>
@@ -1307,39 +1641,39 @@
         `;
       }
 
-      function generateAboutHTML(content, theme) {
+      function generateAboutHTML(content) {
         return `
-          <section style="padding: 80px 20px;">
-            <div class="container" style="display: flex; flex-wrap: wrap; gap: 50px; align-items: center;">
-              <div style="flex: 1; min-width: 300px;">
-                <h2 style="font-size: 2rem; margin-bottom: 20px;">${content.title || 'About Us'}</h2>
-                <p style="color: #666; margin-bottom: 20px;">${content.description || ''}</p>
-                ${content.ctaText ? `<a href="${content.ctaLink || '#'}" class="btn">${content.ctaText}</a>` : ''}
+          <section class="section-about">
+            <div class="container about-grid">
+              <div class="about-content">
+                <h2 class="about-title">${escapeHtml(content.title || 'About Us')}</h2>
+                <p class="about-desc">${escapeHtml(content.description || '')}</p>
+                ${content.ctaText ? `<a href="${escapeHtml(content.ctaLink || '#')}" class="btn">${escapeHtml(content.ctaText)}</a>` : ''}
               </div>
-              ${content.imageUrl ? `<div style="flex: 1; min-width: 300px;"><img src="${content.imageUrl}" style="width: 100%; border-radius: 12px;" alt="About"></div>` : ''}
+              ${content.imageUrl ? `<div class="about-image"><img src="${escapeHtml(content.imageUrl)}" alt="About"></div>` : ''}
             </div>
           </section>
         `;
       }
 
-      function generatePricingHTML(content, theme) {
+      function generatePricingHTML(content) {
         const tiers = content.tiers || [];
-        const tiersHTML = tiers.map((tier, i) => `
-          <div style="flex: 1; min-width: 280px; max-width: 350px; padding: 40px 30px; background: ${tier.featured ? theme.primaryColor || '#667eea' : 'white'}; color: ${tier.featured ? 'white' : '#1a1a1a'}; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); ${tier.featured ? 'transform: scale(1.05);' : ''}">
-            <h3 style="font-size: 1.5rem; margin-bottom: 10px;">${tier.name || ''}</h3>
-            <div style="font-size: 2.5rem; font-weight: 700; margin-bottom: 20px;">${tier.price || ''}</div>
-            <ul style="list-style: none; margin-bottom: 30px;">
-              ${(tier.features || []).map(f => `<li style="padding: 8px 0; border-bottom: 1px solid ${tier.featured ? 'rgba(255,255,255,0.2)' : '#eee'};">✓ ${f}</li>`).join('')}
+        const tiersHTML = tiers.map(tier => `
+          <div class="pricing-card${tier.featured ? ' featured' : ''}">
+            <h3 class="pricing-name">${escapeHtml(tier.name || '')}</h3>
+            <div class="pricing-price">${escapeHtml(tier.price || '')}</div>
+            <ul class="pricing-features">
+              ${(tier.features || []).map(f => `<li>✓ ${escapeHtml(f)}</li>`).join('')}
             </ul>
-            <a href="#" class="btn ${tier.featured ? '' : 'btn-outline'}" style="${tier.featured ? 'background: white; color: ' + (theme.primaryColor || '#667eea') : ''}">${tier.ctaText || 'Get Started'}</a>
+            <a href="#" class="btn${tier.featured ? ' btn-white' : ' btn-outline'}">${escapeHtml(tier.ctaText || 'Get Started')}</a>
           </div>
         `).join('');
 
         return `
-          <section style="padding: 80px 20px; background: #f8f9fa;">
+          <section class="section-pricing">
             <div class="container">
-              <h2 style="text-align: center; font-size: 2rem; margin-bottom: 50px;">${content.title || 'Pricing'}</h2>
-              <div style="display: flex; flex-wrap: wrap; gap: 24px; justify-content: center; align-items: center;">
+              <h2 class="section-title">${escapeHtml(content.title || 'Pricing')}</h2>
+              <div class="pricing-grid">
                 ${tiersHTML}
               </div>
             </div>
@@ -1347,29 +1681,29 @@
         `;
       }
 
-      function generateContactHTML(content, theme) {
+      function generateContactHTML(content) {
         return `
-          <section style="padding: 80px 20px;">
-            <div class="container" style="max-width: 600px;">
-              <h2 style="text-align: center; font-size: 2rem; margin-bottom: 20px;">${content.title || 'Contact Us'}</h2>
-              <p style="text-align: center; color: #666; margin-bottom: 40px;">${content.description || ''}</p>
-              <form style="display: flex; flex-direction: column; gap: 20px;">
-                <input type="text" placeholder="Your Name" style="padding: 14px; border: 1px solid #ddd; border-radius: 8px; font-size: 1rem;">
-                <input type="email" placeholder="Your Email" style="padding: 14px; border: 1px solid #ddd; border-radius: 8px; font-size: 1rem;">
-                <textarea placeholder="Your Message" rows="5" style="padding: 14px; border: 1px solid #ddd; border-radius: 8px; font-size: 1rem; resize: vertical;"></textarea>
-                <button type="submit" class="btn" style="border: none; cursor: pointer; font-size: 1rem;">${content.buttonText || 'Send Message'}</button>
+          <section class="section-contact">
+            <div class="contact-container">
+              <h2 class="contact-title">${escapeHtml(content.title || 'Contact Us')}</h2>
+              <p class="contact-desc">${escapeHtml(content.description || '')}</p>
+              <form class="contact-form">
+                <input type="text" placeholder="Your Name">
+                <input type="email" placeholder="Your Email">
+                <textarea placeholder="Your Message" rows="5"></textarea>
+                <button type="submit" class="btn">${escapeHtml(content.buttonText || 'Send Message')}</button>
               </form>
             </div>
           </section>
         `;
       }
 
-      function generateFooterHTML(content, theme) {
+      function generateFooterHTML(content) {
         return `
-          <footer style="padding: 40px 20px; background: #1a1a1a; color: white; text-align: center;">
+          <footer class="section-footer">
             <div class="container">
-              <p style="margin-bottom: 10px;">${content.companyName || ''}</p>
-              <p style="color: #888; font-size: 0.9rem;">${content.copyright || '© 2024 All rights reserved.'}</p>
+              <p class="footer-company">${escapeHtml(content.companyName || '')}</p>
+              <p class="footer-copyright">${escapeHtml(content.copyright || '© 2024 All rights reserved.')}</p>
             </div>
           </footer>
         `;

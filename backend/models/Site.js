@@ -127,11 +127,14 @@ module.exports = (sequelize) => {
 
   // Class methods
   Site.generateSlug = function(name) {
-    return name
+    // Generate a random suffix to ensure uniqueness
+    const randomSuffix = Math.random().toString(36).substring(2, 8);
+    const baseName = name
       .toLowerCase()
       .replace(/[^a-z0-9]+/g, '-')
       .replace(/^-+|-+$/g, '')
-      .substring(0, 50);
+      .substring(0, 40);  // Shorter to allow room for suffix
+    return `${baseName}-${randomSuffix}`;
   };
 
   Site.isSlugAvailable = async function(slug) {

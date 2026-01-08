@@ -208,6 +208,16 @@
       display: inline-block;
     }
 
+    .section-hero .cta-btn-white {
+      background: white;
+      color: #1a1a1a;
+    }
+
+    .section-hero.dark-bg h1,
+    .section-hero.dark-bg p {
+      color: white;
+    }
+
     .section-features {
       padding: 4rem 2rem;
       background: #fff;
@@ -466,13 +476,41 @@
               .site-preview { --primary-color: <%= primaryColor %>; --secondary-color: <%= secondaryColor %>; }
             </style>
 
+            <%
+              // Helper to detect dark colors for text contrast
+              function isColorDarkEJS(hexColor) {
+                if (!hexColor || typeof hexColor !== 'string') return false;
+                const hex = hexColor.replace('#', '');
+                if (hex.length !== 6 && hex.length !== 3) return false;
+                let r, g, b;
+                if (hex.length === 3) {
+                  r = parseInt(hex[0] + hex[0], 16);
+                  g = parseInt(hex[1] + hex[1], 16);
+                  b = parseInt(hex[2] + hex[2], 16);
+                } else {
+                  r = parseInt(hex.substring(0, 2), 16);
+                  g = parseInt(hex.substring(2, 4), 16);
+                  b = parseInt(hex.substring(4, 6), 16);
+                }
+                const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+                return luminance < 0.5;
+              }
+            %>
             <% config.sections.filter(s => s.visible !== false).sort((a,b) => a.order - b.order).forEach(section => { %>
               <% if (section.type === 'hero') { %>
-              <div class="section-hero">
+              <%
+                const heroBgStart = section.content.backgroundColorStart || primaryColor;
+                const heroBgEnd = section.content.backgroundColorEnd || secondaryColor;
+                const hasCustomBg = section.content.backgroundColorStart || section.content.backgroundColorEnd;
+                const isDarkBg = hasCustomBg && (isColorDarkEJS(heroBgStart) || isColorDarkEJS(heroBgEnd));
+                const heroClass = isDarkBg ? 'section-hero dark-bg' : 'section-hero';
+                const ctaBtnClass = isDarkBg ? 'cta-btn cta-btn-white' : 'cta-btn';
+              %>
+              <div class="<%= heroClass %>" style="background: linear-gradient(135deg, <%= heroBgStart %>, <%= heroBgEnd %>);">
                 <h1><%= section.content.headline %></h1>
                 <p><%= section.content.subheadline %></p>
                 <% if (section.content.ctaText) { %>
-                <a href="<%= section.content.ctaLink || '#' %>" class="cta-btn"><%= section.content.ctaText %></a>
+                <a href="<%= section.content.ctaLink || '#' %>" class="<%= ctaBtnClass %>"><%= section.content.ctaText %></a>
                 <% } %>
               </div>
               <% } else if (section.type === 'features') { %>
@@ -621,6 +659,25 @@
       sendBtn.innerHTML = '<i class="bi bi-send me-1"></i> Send';
     }
 
+    // Helper to determine if a hex color is dark (for text contrast)
+    function isColorDark(hexColor) {
+      if (!hexColor || typeof hexColor !== 'string') return false;
+      var hex = hexColor.replace('#', '');
+      if (hex.length !== 6 && hex.length !== 3) return false;
+      var r, g, b;
+      if (hex.length === 3) {
+        r = parseInt(hex[0] + hex[0], 16);
+        g = parseInt(hex[1] + hex[1], 16);
+        b = parseInt(hex[2] + hex[2], 16);
+      } else {
+        r = parseInt(hex.substring(0, 2), 16);
+        g = parseInt(hex.substring(2, 4), 16);
+        b = parseInt(hex.substring(4, 6), 16);
+      }
+      var luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+      return luminance < 0.5;
+    }
+
     // Refresh preview with new config
     function refreshPreview(config) {
       const primaryColor = config.theme?.primaryColor || '#3B82F6';
@@ -634,11 +691,19 @@
 
       sections.forEach(section => {
         if (section.type === 'hero') {
-          html += '<div class="section-hero">';
+          // Support custom hero background colors
+          var heroBgStart = section.content.backgroundColorStart || primaryColor;
+          var heroBgEnd = section.content.backgroundColorEnd || secondaryColor;
+          var hasCustomBg = section.content.backgroundColorStart || section.content.backgroundColorEnd;
+          var isDark = hasCustomBg && (isColorDark(heroBgStart) || isColorDark(heroBgEnd));
+          var heroClass = isDark ? 'section-hero dark-bg' : 'section-hero';
+          var heroStyle = 'background: linear-gradient(135deg, ' + heroBgStart + ', ' + heroBgEnd + ');';
+          html += '<div class="' + heroClass + '" style="' + heroStyle + '">';
           html += '<h1>' + escapeHtml(section.content.headline || '') + '</h1>';
           html += '<p>' + escapeHtml(section.content.subheadline || '') + '</p>';
           if (section.content.ctaText) {
-            html += '<a href="' + escapeHtml(section.content.ctaLink || '#') + '" class="cta-btn">' + escapeHtml(section.content.ctaText) + '</a>';
+            var ctaBtnClass = isDark ? 'cta-btn cta-btn-white' : 'cta-btn';
+            html += '<a href="' + escapeHtml(section.content.ctaLink || '#') + '" class="' + ctaBtnClass + '">' + escapeHtml(section.content.ctaText) + '</a>';
           }
           html += '</div>';
         } else if (section.type === 'features') {

@@ -24,7 +24,8 @@ const SECTION_SCHEMAS = {
       ctaText: 'Get Started',
       ctaLink: '#contact',
       backgroundImage: null,
-      backgroundGradient: 'from-blue-600 to-indigo-700'
+      backgroundColorStart: null,  // Hex color for gradient start, null = use theme
+      backgroundColorEnd: null     // Hex color for gradient end, null = use theme
     },
     schema: {
       headline: { type: 'string', maxLength: 100, required: true },
@@ -32,7 +33,8 @@ const SECTION_SCHEMAS = {
       ctaText: { type: 'string', maxLength: 30, required: false },
       ctaLink: { type: 'string', maxLength: 200, required: false },
       backgroundImage: { type: 'url', required: false },
-      backgroundGradient: { type: 'string', required: false }
+      backgroundColorStart: { type: 'hexColor', required: false, description: 'Gradient start color in hex format (e.g., #000000)' },
+      backgroundColorEnd: { type: 'hexColor', required: false, description: 'Gradient end color in hex format (e.g., #1a1a1a)' }
     }
   },
 
