@@ -316,6 +316,9 @@
       border-radius: 4px;
       cursor: pointer;
       font-size: 12px;
+      pointer-events: auto;
+      position: relative;
+      z-index: 1001;
     }
 
     .link-edit-popup .btn-save {
@@ -543,20 +546,56 @@
     /* Save indicator toast */
     .save-indicator {
       position: fixed;
-      bottom: 20px;
-      right: 20px;
+      bottom: 24px;
+      right: 24px;
       background: #28a745;
       color: white;
-      padding: 8px 16px;
-      border-radius: 4px;
+      padding: 12px 20px;
+      border-radius: 8px;
       font-size: 14px;
-      z-index: 1000;
-      animation: fadeIn 0.2s ease;
+      font-weight: 500;
+      z-index: 2000;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      animation: slideIn 0.3s ease, fadeOut 0.3s ease 1.7s forwards;
     }
 
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(10px); }
-      to { opacity: 1; transform: translateY(0); }
+    .save-indicator.saving {
+      background: #0d6efd;
+    }
+
+    .save-indicator.error {
+      background: #dc3545;
+    }
+
+    .save-indicator i {
+      font-size: 16px;
+    }
+
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateX(100px); }
+      to { opacity: 1; transform: translateX(0); }
+    }
+
+    @keyframes fadeOut {
+      from { opacity: 1; }
+      to { opacity: 0; }
+    }
+
+    /* Saving spinner */
+    .save-spinner {
+      width: 16px;
+      height: 16px;
+      border: 2px solid rgba(255,255,255,0.3);
+      border-top-color: white;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
     }
 
     .section-features {
@@ -1036,7 +1075,7 @@
                       <% }) %>
                     </ul>
                     <% if (plan.ctaText) { %>
-                    <a href="<%= plan.ctaLink || '#' %>" class="plan-cta" data-editable-link data-field="items.<%= planIndex %>.ctaText" data-link-field="items.<%= planIndex %>.ctaLink"><%= plan.ctaText %></a>
+                    <a href="<%= plan.ctaLink || '#' %>" class="pricing-cta" data-editable-link data-field="items.<%= planIndex %>.ctaText" data-link-field="items.<%= planIndex %>.ctaLink"><%= plan.ctaText %></a>
                     <% } %>
                   </div>
                   <% }) %>
@@ -1081,8 +1120,8 @@
       <input type="text" id="linkEditUrl" placeholder="https://...">
     </div>
     <div class="btn-group">
-      <button class="btn-save" onclick="saveLinkEdit()">Save</button>
-      <button class="btn-cancel" onclick="closeLinkEdit()">Cancel</button>
+      <button type="button" class="btn-save" id="linkEditSaveBtn">Save</button>
+      <button type="button" class="btn-cancel" id="linkEditCancelBtn">Cancel</button>
     </div>
   </div>
 
@@ -1302,7 +1341,7 @@
               html += '</ul>';
             }
             if (item.ctaText) {
-              html += '<a href="' + escapeHtml(item.ctaLink || '#') + '" class="pricing-cta">' + escapeHtml(item.ctaText) + '</a>';
+              html += '<a href="' + escapeHtml(item.ctaLink || '#') + '" class="pricing-cta" data-editable-link data-field="items.' + itemIndex + '.ctaText" data-link-field="items.' + itemIndex + '.ctaLink">' + escapeHtml(item.ctaText) + '</a>';
             }
             html += '</div>';
           });
@@ -1498,6 +1537,17 @@
       document.getElementById('linkEditPopup').classList.remove('active');
       currentLinkElement = null;
     }
+
+    // Initialize link edit popup buttons
+    document.getElementById('linkEditSaveBtn').addEventListener('click', function(e) {
+      e.stopPropagation();
+      saveLinkEdit();
+    });
+
+    document.getElementById('linkEditCancelBtn').addEventListener('click', function(e) {
+      e.stopPropagation();
+      closeLinkEdit();
+    });
 
     // Icon picker functionality
     var currentIconElement = null;
@@ -1770,6 +1820,7 @@
       if (!siteData || !siteData.draftConfig) return;
 
       console.log('[Builder] Saving section order...');
+      showSaveIndicator('saving');
 
       fetch('/api/sites/' + siteId, {
         method: 'PUT',
@@ -1783,25 +1834,12 @@
       })
       .then(function(data) {
         console.log('[Builder] Section order saved');
-        showSaveIndicator('Order saved');
+        showSaveIndicator('success');
       })
       .catch(function(error) {
         console.error('[Builder] Error saving order:', error);
+        showSaveIndicator('error', 'Failed to save order');
       });
-    }
-
-    function showSaveIndicator(message) {
-      var existing = document.querySelector('.save-indicator');
-      if (existing) existing.remove();
-
-      var indicator = document.createElement('div');
-      indicator.className = 'save-indicator';
-      indicator.textContent = message || 'Saved';
-      document.body.appendChild(indicator);
-
-      setTimeout(function() {
-        indicator.remove();
-      }, 2000);
     }
 
     // Save text edit to config
@@ -1855,11 +1893,16 @@
       doSave();
     }
 
+    var currentSaveIndicator = null;
+
     function doSave() {
       if (!siteData || !siteData.draftConfig) return;
 
       isSaving = true;
       console.log('[Builder] Saving changes to backend...');
+
+      // Show saving indicator
+      showSaveIndicator('saving');
 
       fetch('/api/sites/' + siteId, {
         method: 'PUT',
@@ -1872,7 +1915,7 @@
         isSaving = false;
         if (data.success) {
           console.log('[Builder] Save successful');
-          showSaveIndicator();
+          showSaveIndicator('success');
 
           // Process any pending save
           if (pendingSave) {
@@ -1882,30 +1925,50 @@
           }
         } else {
           console.error('[Builder] Save failed:', data.error);
+          showSaveIndicator('error', data.error || 'Save failed');
         }
       })
       .catch(function(err) {
         isSaving = false;
         console.error('[Builder] Save error:', err);
+        showSaveIndicator('error', 'Connection error');
       });
     }
 
-    // Show save indicator
-    function showSaveIndicator() {
-      var indicator = document.createElement('div');
-      indicator.textContent = '✓ Saved';
-      indicator.className = 'save-indicator';
-      document.body.appendChild(indicator);
-      setTimeout(function() { indicator.remove(); }, 2000);
-    }
-
-    // Close link popup when clicking outside
-    document.addEventListener('click', function(e) {
-      var popup = document.getElementById('linkEditPopup');
-      if (popup.classList.contains('active') && !popup.contains(e.target) && e.target !== currentLinkElement) {
-        closeLinkEdit();
+    // Show save indicator with different states
+    function showSaveIndicator(state, message) {
+      // Remove existing indicator
+      if (currentSaveIndicator) {
+        currentSaveIndicator.remove();
+        currentSaveIndicator = null;
       }
-    });
+
+      var indicator = document.createElement('div');
+      indicator.className = 'save-indicator';
+
+      if (state === 'saving') {
+        indicator.classList.add('saving');
+        indicator.innerHTML = '<div class="save-spinner"></div> Saving...';
+        // Don't auto-remove while saving
+        indicator.style.animation = 'slideIn 0.3s ease';
+      } else if (state === 'success') {
+        indicator.innerHTML = '<i class="bi bi-check-circle"></i> Saved';
+        setTimeout(function() {
+          if (indicator.parentNode) indicator.remove();
+          currentSaveIndicator = null;
+        }, 2000);
+      } else if (state === 'error') {
+        indicator.classList.add('error');
+        indicator.innerHTML = '<i class="bi bi-x-circle"></i> ' + (message || 'Error');
+        setTimeout(function() {
+          if (indicator.parentNode) indicator.remove();
+          currentSaveIndicator = null;
+        }, 3000);
+      }
+
+      document.body.appendChild(indicator);
+      currentSaveIndicator = indicator;
+    }
 
     // ============================================
     // END WYSIWYG

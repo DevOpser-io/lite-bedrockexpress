@@ -209,7 +209,7 @@ function executeTool(toolName, toolInput, currentConfig) {
         return executeReorderSections(config, toolInput);
 
       case 'create_full_site':
-        return executeCreateFullSite(toolInput);
+        return executeCreateFullSite(config, toolInput);
 
       default:
         return {
@@ -474,7 +474,58 @@ function executeReorderSections(config, input) {
 /**
  * Create a complete site from scratch
  */
-function executeCreateFullSite(input) {
+function executeCreateFullSite(existingConfig, input) {
+  // If there's already a site with sections, warn and merge instead of replace
+  if (existingConfig && existingConfig.sections && existingConfig.sections.length > 0) {
+    console.log('[Tools] create_full_site called on existing site - merging instead of replacing');
+
+    // Update siteName and theme if provided
+    const config = JSON.parse(JSON.stringify(existingConfig));
+    if (input.siteName) config.siteName = input.siteName;
+    if (input.theme) {
+      config.theme = { ...config.theme, ...input.theme };
+    }
+
+    // For sections, only add new ones that don't exist
+    if (input.sections && input.sections.length > 0) {
+      const existingTypes = config.sections.map(s => s.type);
+
+      input.sections.forEach((sectionInput) => {
+        // If this section type already exists, update it instead
+        const existingIdx = config.sections.findIndex(s => s.type === sectionInput.type);
+        if (existingIdx !== -1) {
+          // Merge content, preserving existing values
+          config.sections[existingIdx].content = {
+            ...config.sections[existingIdx].content,
+            ...(sectionInput.content || {})
+          };
+        } else {
+          // Add new section at the end
+          const schema = SECTION_SCHEMAS[sectionInput.type];
+          if (schema) {
+            config.sections.push({
+              id: `${sectionInput.type}-${uuidv4().slice(0, 8)}`,
+              type: sectionInput.type,
+              order: config.sections.length,
+              visible: true,
+              content: {
+                ...schema.defaultContent,
+                ...(sectionInput.content || {})
+              }
+            });
+          }
+        }
+      });
+    }
+
+    return {
+      success: true,
+      config,
+      message: `Updated existing website "${config.siteName}" - preserved ${existingConfig.sections.length} sections`
+    };
+  }
+
+  // No existing config - create fresh
   const config = {
     siteName: input.siteName || 'My Website',
     theme: {
@@ -579,10 +630,10 @@ DevOpser Lite is a JSON-based website builder:
 - NO inline styles, NO external fonts, NO inline scripts allowed
 
 ## WHAT YOU CAN DO
-- Create new websites with create_full_site
-- Add/remove/reorder sections
-- Update section content (text, colors, items)
-- Change theme colors and fonts
+- Create new websites with create_full_site (ONLY for brand new empty sites)
+- Add/remove/reorder sections with add_section, remove_section, reorder_sections
+- Update section content (text, colors, items) with update_section
+- Change theme colors and fonts with update_theme
 - Help users describe what they want
 
 ## WHAT YOU CANNOT DO
@@ -591,6 +642,15 @@ DevOpser Lite is a JSON-based website builder:
 - Add custom HTML or JavaScript
 - Use properties not listed below
 - Suggest features the system doesn't support
+
+## CRITICAL: PRESERVING USER CHANGES
+The user may have made changes via the visual editor (drag-drop, inline editing).
+These changes are reflected in the CURRENT SITE CONFIGURATION below.
+YOU MUST PRESERVE THESE CHANGES:
+- NEVER use create_full_site if sections already exist - use update_section instead
+- When updating a section, only change the specific fields requested
+- Preserve section ORDER - sections have been reordered by the user
+- Preserve existing content that the user didn't ask to change
 
 ## CURRENT SITE CONFIGURATION
 ${currentConfig ? JSON.stringify(currentConfig, null, 2) : 'No site created yet'}
