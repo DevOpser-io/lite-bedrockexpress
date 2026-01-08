@@ -218,6 +218,116 @@
       color: white;
     }
 
+    /* WYSIWYG Editable Elements */
+    [data-editable] {
+      cursor: pointer;
+      transition: outline 0.2s, background 0.2s;
+      border-radius: 4px;
+    }
+
+    [data-editable]:hover {
+      outline: 2px dashed rgba(13, 110, 253, 0.5);
+      outline-offset: 4px;
+    }
+
+    [data-editable]:focus {
+      outline: 2px solid #0d6efd;
+      outline-offset: 4px;
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    [data-editable][contenteditable="true"] {
+      cursor: text;
+    }
+
+    /* Edit hint tooltip */
+    [data-editable]::after {
+      content: 'Click to edit';
+      position: absolute;
+      top: -24px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #0d6efd;
+      color: white;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 11px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s;
+      white-space: nowrap;
+    }
+
+    [data-editable]:hover::after {
+      opacity: 1;
+    }
+
+    [data-editable]:focus::after {
+      content: 'Press Enter to save, Esc to cancel';
+    }
+
+    /* Make editable elements position relative for tooltip */
+    .section-hero h1,
+    .section-hero p,
+    .section-features h2,
+    .feature-item h3,
+    .feature-item p,
+    .section-about h2,
+    .section-about p,
+    .section-contact h2,
+    .section-contact p,
+    .cta-btn {
+      position: relative;
+    }
+
+    /* Link edit popup */
+    .link-edit-popup {
+      position: fixed;
+      background: white;
+      border: 1px solid #dee2e6;
+      border-radius: 8px;
+      padding: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      z-index: 1000;
+      display: none;
+    }
+
+    .link-edit-popup.active {
+      display: block;
+    }
+
+    .link-edit-popup input {
+      width: 250px;
+      padding: 8px;
+      border: 1px solid #dee2e6;
+      border-radius: 4px;
+      font-size: 14px;
+    }
+
+    .link-edit-popup .btn-group {
+      margin-top: 8px;
+      display: flex;
+      gap: 8px;
+    }
+
+    .link-edit-popup button {
+      padding: 6px 12px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 12px;
+    }
+
+    .link-edit-popup .btn-save {
+      background: #0d6efd;
+      color: white;
+    }
+
+    .link-edit-popup .btn-cancel {
+      background: #6c757d;
+      color: white;
+    }
+
     .section-features {
       padding: 4rem 2rem;
       background: #fff;
@@ -506,42 +616,42 @@
                 const heroClass = isDarkBg ? 'section-hero dark-bg' : 'section-hero';
                 const ctaBtnClass = isDarkBg ? 'cta-btn cta-btn-white' : 'cta-btn';
               %>
-              <div class="<%= heroClass %>" style="background: linear-gradient(135deg, <%= heroBgStart %>, <%= heroBgEnd %>);">
-                <h1><%= section.content.headline %></h1>
-                <p><%= section.content.subheadline %></p>
+              <div class="<%= heroClass %>" data-section-id="<%= section.id %>" data-section-type="hero" data-bg-start="<%= heroBgStart %>" data-bg-end="<%= heroBgEnd %>">
+                <h1 data-editable data-field="headline"><%= section.content.headline %></h1>
+                <p data-editable data-field="subheadline"><%= section.content.subheadline %></p>
                 <% if (section.content.ctaText) { %>
-                <a href="<%= section.content.ctaLink || '#' %>" class="<%= ctaBtnClass %>"><%= section.content.ctaText %></a>
+                <a href="<%= section.content.ctaLink || '#' %>" class="<%= ctaBtnClass %>" data-editable-link data-field="ctaText" data-link-field="ctaLink"><%= section.content.ctaText %></a>
                 <% } %>
               </div>
               <% } else if (section.type === 'features') { %>
-              <div class="section-features">
-                <h2><%= section.content.title %></h2>
+              <div class="section-features" data-section-id="<%= section.id %>" data-section-type="features">
+                <h2 data-editable data-field="title"><%= section.content.title %></h2>
                 <div class="features-grid">
-                  <% (section.content.items || []).forEach(item => { %>
-                  <div class="feature-item">
+                  <% (section.content.items || []).forEach((item, itemIndex) => { %>
+                  <div class="feature-item" data-item-index="<%= itemIndex %>">
                     <div class="feature-icon"><i class="bi bi-<%= item.icon || 'star' %>"></i></div>
-                    <h3><%= item.title %></h3>
-                    <p><%= item.description %></p>
+                    <h3 data-editable data-field="items.<%= itemIndex %>.title"><%= item.title %></h3>
+                    <p data-editable data-field="items.<%= itemIndex %>.description"><%= item.description %></p>
                   </div>
                   <% }) %>
                 </div>
               </div>
               <% } else if (section.type === 'about') { %>
-              <div class="section-about">
-                <h2><%= section.content.title %></h2>
-                <p><%= section.content.content %></p>
+              <div class="section-about" data-section-id="<%= section.id %>" data-section-type="about">
+                <h2 data-editable data-field="title"><%= section.content.title %></h2>
+                <p data-editable data-field="content"><%= section.content.content %></p>
               </div>
               <% } else if (section.type === 'contact') { %>
-              <div class="section-contact">
-                <h2><%= section.content.title %></h2>
-                <p><%= section.content.subtitle %></p>
+              <div class="section-contact" data-section-id="<%= section.id %>" data-section-type="contact">
+                <h2 data-editable data-field="title"><%= section.content.title %></h2>
+                <p data-editable data-field="subtitle"><%= section.content.subtitle %></p>
                 <% if (section.content.email) { %>
-                <p><i class="bi bi-envelope me-2"></i><%= section.content.email %></p>
+                <p><i class="bi bi-envelope me-2"></i><span data-editable data-field="email"><%= section.content.email %></span></p>
                 <% } %>
               </div>
               <% } else if (section.type === 'footer') { %>
-              <div class="section-footer">
-                <p><%= section.content.copyright || '© ' + new Date().getFullYear() + ' ' + (section.content.companyName || config.siteName) %></p>
+              <div class="section-footer" data-section-id="<%= section.id %>" data-section-type="footer">
+                <p data-editable data-field="copyright"><%= section.content.copyright || '© ' + new Date().getFullYear() + ' ' + (section.content.companyName || config.siteName) %></p>
               </div>
               <% } %>
             <% }) %>
@@ -557,6 +667,23 @@
       </div>
     </div>
   </main>
+
+  <!-- Link/Button Edit Popup -->
+  <div class="link-edit-popup" id="linkEditPopup">
+    <div style="margin-bottom: 8px; font-weight: 600; font-size: 13px;">Edit Button</div>
+    <div style="margin-bottom: 8px;">
+      <label style="font-size: 12px; color: #6c757d;">Button Text</label>
+      <input type="text" id="linkEditText" placeholder="Button text">
+    </div>
+    <div style="margin-bottom: 8px;">
+      <label style="font-size: 12px; color: #6c757d;">Link URL</label>
+      <input type="text" id="linkEditUrl" placeholder="https://...">
+    </div>
+    <div class="btn-group">
+      <button class="btn-save" onclick="saveLinkEdit()">Save</button>
+      <button class="btn-cancel" onclick="closeLinkEdit()">Cancel</button>
+    </div>
+  </div>
 
   <script nonce="<%= cspNonce %>">
     // Site data from server
@@ -634,13 +761,14 @@
           chatHistory.push({ role: 'assistant', content: data.message });
 
           // Refresh preview if config changed
-          if (data.site && data.site.draftConfig) {
-            refreshPreview(data.site.draftConfig);
+          if (data.siteConfig) {
+            console.log('[Builder] Refreshing preview with config:', JSON.stringify(data.siteConfig.sections?.find(s => s.type === 'hero')?.content, null, 2));
+            refreshPreview(data.siteConfig);
             // Update local siteData
-            siteData.draftConfig = data.site.draftConfig;
+            siteData.draftConfig = data.siteConfig;
 
             // Show publish button if we now have content
-            if (data.site.draftConfig.sections && data.site.draftConfig.sections.length > 0) {
+            if (data.siteConfig.sections && data.siteConfig.sections.length > 0) {
               if (!publishBtn) {
                 location.reload(); // Reload to show publish button
               }
@@ -680,6 +808,7 @@
 
     // Refresh preview with new config
     function refreshPreview(config) {
+      console.log('[Builder] refreshPreview called');
       const primaryColor = config.theme?.primaryColor || '#3B82F6';
       const secondaryColor = config.theme?.secondaryColor || '#10B981';
 
@@ -689,7 +818,8 @@
         .filter(s => s.visible !== false)
         .sort((a, b) => a.order - b.order);
 
-      sections.forEach(section => {
+      sections.forEach(function(section, sectionIndex) {
+        var sectionId = section.id;
         if (section.type === 'hero') {
           // Support custom hero background colors
           var heroBgStart = section.content.backgroundColorStart || primaryColor;
@@ -697,44 +827,45 @@
           var hasCustomBg = section.content.backgroundColorStart || section.content.backgroundColorEnd;
           var isDark = hasCustomBg && (isColorDark(heroBgStart) || isColorDark(heroBgEnd));
           var heroClass = isDark ? 'section-hero dark-bg' : 'section-hero';
-          var heroStyle = 'background: linear-gradient(135deg, ' + heroBgStart + ', ' + heroBgEnd + ');';
-          html += '<div class="' + heroClass + '" style="' + heroStyle + '">';
-          html += '<h1>' + escapeHtml(section.content.headline || '') + '</h1>';
-          html += '<p>' + escapeHtml(section.content.subheadline || '') + '</p>';
+          console.log('[Builder] Hero rendering:', { heroBgStart, heroBgEnd, hasCustomBg, isDark });
+          // Use data attributes for colors and editing - CSS will be applied via JS after innerHTML
+          html += '<div class="' + heroClass + '" data-section-id="' + sectionId + '" data-section-type="hero" data-bg-start="' + heroBgStart + '" data-bg-end="' + heroBgEnd + '">';
+          html += '<h1 data-editable data-field="headline">' + escapeHtml(section.content.headline || '') + '</h1>';
+          html += '<p data-editable data-field="subheadline">' + escapeHtml(section.content.subheadline || '') + '</p>';
           if (section.content.ctaText) {
             var ctaBtnClass = isDark ? 'cta-btn cta-btn-white' : 'cta-btn';
-            html += '<a href="' + escapeHtml(section.content.ctaLink || '#') + '" class="' + ctaBtnClass + '">' + escapeHtml(section.content.ctaText) + '</a>';
+            html += '<a href="' + escapeHtml(section.content.ctaLink || '#') + '" class="' + ctaBtnClass + '" data-editable-link data-field="ctaText" data-link-field="ctaLink">' + escapeHtml(section.content.ctaText) + '</a>';
           }
           html += '</div>';
         } else if (section.type === 'features') {
-          html += '<div class="section-features">';
-          html += '<h2>' + escapeHtml(section.content.title || '') + '</h2>';
+          html += '<div class="section-features" data-section-id="' + sectionId + '" data-section-type="features">';
+          html += '<h2 data-editable data-field="title">' + escapeHtml(section.content.title || '') + '</h2>';
           html += '<div class="features-grid">';
-          (section.content.items || []).forEach(function(item) {
-            html += '<div class="feature-item">';
+          (section.content.items || []).forEach(function(item, itemIndex) {
+            html += '<div class="feature-item" data-item-index="' + itemIndex + '">';
             html += '<div class="feature-icon"><i class="bi bi-' + escapeHtml(item.icon || 'star') + '"></i></div>';
-            html += '<h3>' + escapeHtml(item.title || '') + '</h3>';
-            html += '<p>' + escapeHtml(item.description || '') + '</p>';
+            html += '<h3 data-editable data-field="items.' + itemIndex + '.title">' + escapeHtml(item.title || '') + '</h3>';
+            html += '<p data-editable data-field="items.' + itemIndex + '.description">' + escapeHtml(item.description || '') + '</p>';
             html += '</div>';
           });
           html += '</div></div>';
         } else if (section.type === 'about') {
-          html += '<div class="section-about">';
-          html += '<h2>' + escapeHtml(section.content.title || '') + '</h2>';
-          html += '<p>' + escapeHtml(section.content.content || '') + '</p>';
+          html += '<div class="section-about" data-section-id="' + sectionId + '" data-section-type="about">';
+          html += '<h2 data-editable data-field="title">' + escapeHtml(section.content.title || '') + '</h2>';
+          html += '<p data-editable data-field="content">' + escapeHtml(section.content.content || '') + '</p>';
           html += '</div>';
         } else if (section.type === 'contact') {
-          html += '<div class="section-contact">';
-          html += '<h2>' + escapeHtml(section.content.title || '') + '</h2>';
-          html += '<p>' + escapeHtml(section.content.subtitle || '') + '</p>';
+          html += '<div class="section-contact" data-section-id="' + sectionId + '" data-section-type="contact">';
+          html += '<h2 data-editable data-field="title">' + escapeHtml(section.content.title || '') + '</h2>';
+          html += '<p data-editable data-field="subtitle">' + escapeHtml(section.content.subtitle || '') + '</p>';
           if (section.content.email) {
-            html += '<p><i class="bi bi-envelope me-2"></i>' + escapeHtml(section.content.email) + '</p>';
+            html += '<p><i class="bi bi-envelope me-2"></i><span data-editable data-field="email">' + escapeHtml(section.content.email) + '</span></p>';
           }
           html += '</div>';
         } else if (section.type === 'footer') {
           var copyright = section.content.copyright || ('© ' + new Date().getFullYear() + ' ' + (section.content.companyName || config.siteName || ''));
-          html += '<div class="section-footer">';
-          html += '<p>' + escapeHtml(copyright) + '</p>';
+          html += '<div class="section-footer" data-section-id="' + sectionId + '" data-section-type="footer">';
+          html += '<p data-editable data-field="copyright">' + escapeHtml(copyright) + '</p>';
           html += '</div>';
         }
       });
@@ -749,10 +880,247 @@
           previewEl.style.setProperty('--primary-color', primaryColor);
           previewEl.style.setProperty('--secondary-color', secondaryColor);
         }
+        // Apply hero background colors from data attributes (CSP-compliant)
+        var heroEl = previewFrame.querySelector('.section-hero');
+        if (heroEl) {
+          var bgStart = heroEl.getAttribute('data-bg-start');
+          var bgEnd = heroEl.getAttribute('data-bg-end');
+          if (bgStart && bgEnd) {
+            heroEl.style.background = 'linear-gradient(135deg, ' + bgStart + ', ' + bgEnd + ')';
+            console.log('[Builder] Applied hero background:', bgStart, '->', bgEnd);
+          }
+        }
+        // Initialize editable elements
+        initEditableElements();
       } else {
         previewFrame.innerHTML = '<div class="empty-state"><i class="bi bi-easel"></i><h5>No preview yet</h5><p>Describe your website in the chat to get started!</p></div>';
       }
     }
+
+    // ============================================
+    // WYSIWYG INLINE EDITING
+    // ============================================
+
+    var currentEditElement = null;
+    var currentLinkElement = null;
+    var originalContent = '';
+    var saveTimeout = null;
+
+    // Initialize editable elements with event listeners
+    function initEditableElements() {
+      // Text editable elements
+      var editables = previewFrame.querySelectorAll('[data-editable]');
+      editables.forEach(function(el) {
+        el.addEventListener('click', handleEditableClick);
+        el.addEventListener('blur', handleEditableBlur);
+        el.addEventListener('keydown', handleEditableKeydown);
+      });
+
+      // Link/button editable elements
+      var links = previewFrame.querySelectorAll('[data-editable-link]');
+      links.forEach(function(el) {
+        el.addEventListener('click', handleLinkClick);
+      });
+    }
+
+    // Handle click on editable text element
+    function handleEditableClick(e) {
+      e.preventDefault();
+      e.stopPropagation();
+
+      var el = e.target;
+      if (el.getAttribute('contenteditable') === 'true') return;
+
+      // Store original content for cancel
+      originalContent = el.textContent;
+      currentEditElement = el;
+
+      // Make editable
+      el.setAttribute('contenteditable', 'true');
+      el.focus();
+
+      // Select all text
+      var range = document.createRange();
+      range.selectNodeContents(el);
+      var sel = window.getSelection();
+      sel.removeAllRanges();
+      sel.addRange(range);
+    }
+
+    // Handle blur (save changes)
+    function handleEditableBlur(e) {
+      var el = e.target;
+      if (el.getAttribute('contenteditable') !== 'true') return;
+
+      el.setAttribute('contenteditable', 'false');
+
+      var newContent = el.textContent.trim();
+      if (newContent !== originalContent) {
+        saveTextEdit(el, newContent);
+      }
+
+      currentEditElement = null;
+      originalContent = '';
+    }
+
+    // Handle keydown (Enter to save, Escape to cancel)
+    function handleEditableKeydown(e) {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        e.target.blur();
+      } else if (e.key === 'Escape') {
+        e.preventDefault();
+        e.target.textContent = originalContent;
+        e.target.blur();
+      }
+    }
+
+    // Handle click on link/button element
+    function handleLinkClick(e) {
+      e.preventDefault();
+      e.stopPropagation();
+
+      currentLinkElement = e.target;
+      var popup = document.getElementById('linkEditPopup');
+      var textInput = document.getElementById('linkEditText');
+      var urlInput = document.getElementById('linkEditUrl');
+
+      // Pre-fill with current values
+      textInput.value = currentLinkElement.textContent;
+      urlInput.value = currentLinkElement.getAttribute('href') || '';
+
+      // Position popup near the element
+      var rect = currentLinkElement.getBoundingClientRect();
+      popup.style.top = (rect.bottom + 10) + 'px';
+      popup.style.left = Math.max(10, rect.left) + 'px';
+      popup.classList.add('active');
+
+      textInput.focus();
+      textInput.select();
+    }
+
+    // Save link edit
+    function saveLinkEdit() {
+      if (!currentLinkElement) return;
+
+      var textInput = document.getElementById('linkEditText');
+      var urlInput = document.getElementById('linkEditUrl');
+      var newText = textInput.value.trim();
+      var newUrl = urlInput.value.trim();
+
+      if (newText) {
+        currentLinkElement.textContent = newText;
+      }
+      if (newUrl) {
+        currentLinkElement.setAttribute('href', newUrl);
+      }
+
+      // Save to config
+      var section = currentLinkElement.closest('[data-section-id]');
+      var sectionId = section.getAttribute('data-section-id');
+      var textField = currentLinkElement.getAttribute('data-field');
+      var linkField = currentLinkElement.getAttribute('data-link-field');
+
+      var updates = {};
+      if (newText) updates[textField] = newText;
+      if (newUrl) updates[linkField] = newUrl;
+
+      saveToBackend(sectionId, updates);
+      closeLinkEdit();
+    }
+
+    // Close link edit popup
+    function closeLinkEdit() {
+      document.getElementById('linkEditPopup').classList.remove('active');
+      currentLinkElement = null;
+    }
+
+    // Save text edit to config
+    function saveTextEdit(el, newContent) {
+      var section = el.closest('[data-section-id]');
+      if (!section) return;
+
+      var sectionId = section.getAttribute('data-section-id');
+      var field = el.getAttribute('data-field');
+
+      var updates = {};
+
+      // Handle nested fields like items.0.title
+      if (field.includes('.')) {
+        var parts = field.split('.');
+        if (parts[0] === 'items') {
+          var itemIndex = parseInt(parts[1]);
+          var itemField = parts[2];
+          // We need to get the full items array and update it
+          var currentSection = siteData.draftConfig.sections.find(s => s.id === sectionId);
+          if (currentSection && currentSection.content.items) {
+            var items = JSON.parse(JSON.stringify(currentSection.content.items));
+            items[itemIndex][itemField] = newContent;
+            updates.items = items;
+          }
+        }
+      } else {
+        updates[field] = newContent;
+      }
+
+      saveToBackend(sectionId, updates);
+    }
+
+    // Save changes to backend (debounced)
+    function saveToBackend(sectionId, contentUpdates) {
+      // Update local config immediately
+      var section = siteData.draftConfig.sections.find(s => s.id === sectionId);
+      if (section) {
+        Object.assign(section.content, contentUpdates);
+      }
+
+      // Debounce backend save
+      clearTimeout(saveTimeout);
+      saveTimeout = setTimeout(function() {
+        console.log('[Builder] Auto-saving changes:', sectionId, contentUpdates);
+
+        fetch('/api/sites/' + siteId, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'same-origin',
+          body: JSON.stringify({ draftConfig: siteData.draftConfig })
+        })
+        .then(function(res) { return res.json(); })
+        .then(function(data) {
+          if (data.success) {
+            console.log('[Builder] Auto-save successful');
+            // Show brief save indicator
+            showSaveIndicator();
+          } else {
+            console.error('[Builder] Auto-save failed:', data.error);
+          }
+        })
+        .catch(function(err) {
+          console.error('[Builder] Auto-save error:', err);
+        });
+      }, 500);
+    }
+
+    // Show save indicator
+    function showSaveIndicator() {
+      var indicator = document.createElement('div');
+      indicator.textContent = '✓ Saved';
+      indicator.style.cssText = 'position: fixed; bottom: 20px; right: 20px; background: #28a745; color: white; padding: 8px 16px; border-radius: 4px; font-size: 14px; z-index: 1000;';
+      document.body.appendChild(indicator);
+      setTimeout(function() { indicator.remove(); }, 2000);
+    }
+
+    // Close link popup when clicking outside
+    document.addEventListener('click', function(e) {
+      var popup = document.getElementById('linkEditPopup');
+      if (popup.classList.contains('active') && !popup.contains(e.target) && e.target !== currentLinkElement) {
+        closeLinkEdit();
+      }
+    });
+
+    // ============================================
+    // END WYSIWYG
+    // ============================================
 
     // Escape HTML
     function escapeHtml(str) {
@@ -865,6 +1233,20 @@
         }
       });
     }
+
+    // Apply hero background from data attributes on page load (CSP-compliant)
+    function applyHeroBackground() {
+      var heroEl = document.querySelector('.section-hero');
+      if (heroEl) {
+        var bgStart = heroEl.getAttribute('data-bg-start');
+        var bgEnd = heroEl.getAttribute('data-bg-end');
+        if (bgStart && bgEnd) {
+          heroEl.style.background = 'linear-gradient(135deg, ' + bgStart + ', ' + bgEnd + ')';
+        }
+      }
+    }
+    applyHeroBackground();
+    initEditableElements();
 
     // Focus chat input on load
     chatInput.focus();

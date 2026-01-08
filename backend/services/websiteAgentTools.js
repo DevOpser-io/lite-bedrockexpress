@@ -333,8 +333,23 @@ function executeUpdateSection(config, input) {
 
   const section = config.sections[sectionIndex];
 
+  // Store previous values for rollback support
+  const previousContent = JSON.parse(JSON.stringify(section.content));
+  const changedFields = [];
+
   // Update content (deep merge)
   if (input.content) {
+    // Track what fields are being changed
+    for (const [key, newValue] of Object.entries(input.content)) {
+      const oldValue = section.content[key];
+      if (JSON.stringify(oldValue) !== JSON.stringify(newValue)) {
+        changedFields.push({
+          field: key,
+          oldValue: oldValue,
+          newValue: newValue
+        });
+      }
+    }
     section.content = deepMerge(section.content, input.content);
   }
 
@@ -343,10 +358,21 @@ function executeUpdateSection(config, input) {
     section.visible = input.visible;
   }
 
+  // Build detailed message with change info for rollback support
+  let message = `Updated ${section.type} section.`;
+  if (changedFields.length > 0) {
+    const changeDetails = changedFields.map(c => {
+      const oldDisplay = c.oldValue !== undefined ? JSON.stringify(c.oldValue) : 'not set';
+      return `${c.field}: ${oldDisplay} → ${JSON.stringify(c.newValue)}`;
+    }).join(', ');
+    message += ` Changes: ${changeDetails}`;
+  }
+
   return {
     success: true,
     config,
-    message: `Updated ${section.type} section`
+    message,
+    previousContent // Include for potential rollback
   };
 }
 
@@ -500,92 +526,121 @@ function deepMerge(target, source) {
 }
 
 /**
+ * Generate property documentation for a section schema
+ */
+function generateSchemaDocumentation(type, schema) {
+  const props = [];
+  for (const [key, spec] of Object.entries(schema.schema || {})) {
+    let desc = key;
+    if (spec.type === 'array' && spec.itemSchema) {
+      const itemProps = Object.keys(spec.itemSchema).join(', ');
+      desc = `${key}: array of objects with {${itemProps}}`;
+      if (spec.maxItems) desc += ` (max ${spec.maxItems} items)`;
+    } else if (spec.type === 'enum') {
+      desc = `${key}: one of [${spec.values.join(', ')}]`;
+    } else {
+      desc = `${key}: ${spec.type}${spec.required ? ' (required)' : ''}`;
+      if (spec.maxLength) desc += ` (max ${spec.maxLength} chars)`;
+    }
+    props.push(`  - ${desc}`);
+  }
+  return props.join('\n');
+}
+
+/**
  * Get the system prompt for the agent
  */
 function getAgentSystemPrompt(currentConfig) {
+  // Generate complete property documentation for all section types
+  const sectionDocs = Object.entries(SECTION_SCHEMAS).map(([type, schema]) => {
+    return `### ${type.toUpperCase()} SECTION
+${schema.description}
+Valid properties:
+${generateSchemaDocumentation(type, schema)}`;
+  }).join('\n\n');
+
   let prompt = `You are a website builder AI assistant for DevOpser Lite.
 You help users create and modify websites by using the available tools.
 
-## ARCHITECTURE
-DevOpser Lite uses a JSON-based template system where:
-- Websites are defined as JSON configurations with sections
-- Each section has a type and content that maps to pre-built CSS classes
-- Users can later edit text/images directly in a drag-and-drop editor
-- Sites deploy to Kubernetes with strict Content Security Policy (CSP)
+## CRITICAL CONSTRAINTS - READ FIRST
+1. You can ONLY use properties listed in this prompt - DO NOT invent new properties
+2. All values must match the types specified (string, hex color, array, etc.)
+3. DO NOT use CSS class names, Tailwind classes, or any styling syntax
+4. DO NOT suggest external fonts, CDNs, or external resources
+5. Colors MUST be hex format like "#000000", never CSS names like "black"
+6. You MUST call tools to make changes - never just describe what you would do
 
-## CSP COMPLIANCE - CRITICAL
-All generated content MUST be CSP-compliant:
-- NO inline styles (style="...") - templates use CSS classes only
-- NO external fonts (Google Fonts, etc.) - use system font stack
-- NO inline scripts - all JS is in external files
-- Images must be from allowed sources (our CDN, or user uploads)
+## SYSTEM ARCHITECTURE
+DevOpser Lite is a JSON-based website builder:
+- Websites are JSON configurations with sections (hero, features, about, etc.)
+- The JSON maps to pre-built, CSP-compliant HTML/CSS templates
+- Users edit content via drag-and-drop editor OR chat with you
+- Sites deploy to Kubernetes with strict Content Security Policy
+- NO inline styles, NO external fonts, NO inline scripts allowed
 
-## TEMPLATE SYSTEM
-The configuration you create becomes a JSON file that:
-1. Gets rendered server-side using pre-defined CSS classes
-2. Can be edited by users in a visual drag-and-drop editor
-3. Supports regenerating text/images via AI later
+## WHAT YOU CAN DO
+- Create new websites with create_full_site
+- Add/remove/reorder sections
+- Update section content (text, colors, items)
+- Change theme colors and fonts
+- Help users describe what they want
 
-IMPORTANT: You MUST use tools to make changes. Do not just describe what you would do - actually call the tools.
+## WHAT YOU CANNOT DO
+- Add custom CSS or styling
+- Use external images (unless user provides URL)
+- Add custom HTML or JavaScript
+- Use properties not listed below
+- Suggest features the system doesn't support
 
 ## CURRENT SITE CONFIGURATION
 ${currentConfig ? JSON.stringify(currentConfig, null, 2) : 'No site created yet'}
 
-## AVAILABLE SECTION TYPES
-${Object.entries(SECTION_SCHEMAS).map(([type, schema]) =>
-  `- ${type}: ${schema.description}`
-).join('\n')}
+## SECTION TYPES AND VALID PROPERTIES
+IMPORTANT: Only use properties listed here. Any other property will be ignored.
 
-## HERO SECTION PROPERTIES - READ CAREFULLY
-The hero section supports ONLY these content properties:
-- headline: Main heading text
-- subheadline: Supporting text below headline
-- ctaText: Call-to-action button text
-- ctaLink: URL for the CTA button
-- backgroundColorStart: Hex color for gradient start (e.g., "#000000" for black)
-- backgroundColorEnd: Hex color for gradient end (e.g., "#1a1a1a" for dark gray)
+${sectionDocs}
 
-CRITICAL RULES FOR HERO BACKGROUNDS:
-1. Use "backgroundColorStart" and "backgroundColorEnd" properties ONLY
-2. Values MUST be hex color codes like "#000000", "#1a1a1a", "#ffffff"
-3. DO NOT use "backgroundGradient" - this property does NOT exist
-4. DO NOT use Tailwind/CSS class names like "from-black", "to-gray-900"
+## THEME PROPERTIES
+The theme object supports:
+- primaryColor: hex color (e.g., "#3B82F6")
+- secondaryColor: hex color (e.g., "#10B981")
+- backgroundColor: hex color (e.g., "#FFFFFF")
+- textColor: hex color (e.g., "#1F2937")
+- fontFamily: font name (system fonts only: Inter, Roboto, etc.)
 
-Example - To make a black hero background:
-{
+Available presets: ${Object.keys(THEME_PRESETS).join(', ')}
+
+## AVAILABLE ICONS
+For feature icons, use: ${AVAILABLE_ICONS.join(', ')}
+
+## COMMON TASKS - EXACT SYNTAX
+
+### Change hero background to black:
+update_section with sectionType: "hero", content: {
   "backgroundColorStart": "#000000",
   "backgroundColorEnd": "#1a1a1a"
 }
 
-## AVAILABLE THEME PRESETS
-${Object.entries(THEME_PRESETS).map(([key, preset]) =>
-  `- ${key}: ${preset.name} (${preset.primaryColor})`
-).join('\n')}
+### Change theme colors:
+update_theme with primaryColor: "#8B5CF6", secondaryColor: "#EC4899"
 
-## AVAILABLE ICONS (for features)
-${AVAILABLE_ICONS.join(', ')}
+### Update headline:
+update_section with sectionType: "hero", content: { "headline": "New Headline" }
 
-## GUIDELINES
-1. For new websites, use create_full_site with all sections at once
-2. For changes to existing sites, use the specific update tools
-3. When updating content, only include the fields that need to change
-4. Write compelling, professional content - headlines, descriptions, features
-5. After making changes, briefly confirm what you did in a friendly way
-6. NEVER suggest inline styles or external fonts - the system handles styling
+### Add a feature item:
+update_section with sectionType: "features", content: {
+  "items": [existing items..., { "icon": "rocket", "title": "New", "description": "..." }]
+}
 
-## CONTENT GUIDELINES
-- Headlines: Clear, benefit-focused, 5-10 words
-- Subheadlines: Expand on the value proposition, 15-25 words
-- Feature descriptions: Concise, action-oriented, 10-20 words each
-- CTA buttons: Action verbs (Get Started, Learn More, Contact Us)
+## ROLLBACK SUPPORT
+When update_section runs, it returns: "Changes: field: oldValue → newValue"
+To undo, call update_section with the old values shown.
 
-## EXAMPLES
-- "make a landing page for a coffee shop" -> create_full_site with hero, features, about, contact, footer
-- "change the colors to purple" -> update_theme with primaryColor and secondaryColor
-- "make the headline more exciting" -> update_section to change hero headline
-- "add a pricing section" -> add_section with type "pricing" and tier content
-- "make the hero black" -> update_section with content: { backgroundColorStart: "#000000", backgroundColorEnd: "#1a1a1a" }
-- "make the hero blue" -> update_section with content: { backgroundColorStart: "#1e40af", backgroundColorEnd: "#3b82f6" }
+## RESPONSE STYLE
+- Be concise and friendly
+- Confirm what you changed
+- Don't explain how the system works unless asked
+- If user asks for something impossible, explain what IS possible
 `;
 
   return prompt;
