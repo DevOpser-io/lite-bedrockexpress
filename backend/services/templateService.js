@@ -92,11 +92,13 @@ function validateSection(section) {
     return errors;
   }
 
-  if (typeof section.order !== 'number') {
+  // Be lenient with order - default to 0 if not a number
+  if (section.order !== undefined && typeof section.order !== 'number') {
     errors.push('Section order must be a number');
   }
 
-  if (typeof section.visible !== 'boolean') {
+  // Be lenient with visible - default to true if not set
+  if (section.visible !== undefined && typeof section.visible !== 'boolean') {
     errors.push('Section visible must be a boolean');
   }
 

@@ -439,6 +439,107 @@
       position: relative;
     }
 
+    /* Drag and drop section reordering */
+    [data-section-id] {
+      position: relative;
+    }
+
+    .section-drag-handle {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      width: 32px;
+      height: 32px;
+      background: rgba(255, 255, 255, 0.9);
+      border: 1px solid #dee2e6;
+      border-radius: 6px;
+      cursor: grab;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      transition: opacity 0.2s, background 0.2s;
+      z-index: 10;
+      color: #6c757d;
+      font-size: 16px;
+    }
+
+    [data-section-id]:hover .section-drag-handle {
+      opacity: 1;
+    }
+
+    .section-drag-handle:hover {
+      background: #fff;
+      color: #0d6efd;
+      border-color: #0d6efd;
+    }
+
+    .section-drag-handle:active {
+      cursor: grabbing;
+    }
+
+    [data-section-id].dragging {
+      opacity: 0.5;
+      outline: 2px dashed #0d6efd;
+      outline-offset: -2px;
+    }
+
+    [data-section-id].drag-over {
+      outline: 3px solid #0d6efd;
+      outline-offset: -3px;
+    }
+
+    .drop-indicator {
+      height: 4px;
+      background: #0d6efd;
+      margin: 0;
+      border-radius: 2px;
+      transition: all 0.2s;
+    }
+
+    .drop-indicator-top {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: #0d6efd;
+      opacity: 0;
+      z-index: 100;
+    }
+
+    .drop-indicator-bottom {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: #0d6efd;
+      opacity: 0;
+      z-index: 100;
+    }
+
+    [data-section-id].drag-over-top .drop-indicator-top {
+      opacity: 1;
+    }
+
+    [data-section-id].drag-over-bottom .drop-indicator-bottom {
+      opacity: 1;
+    }
+
+    /* Drag handle on dark backgrounds (hero section) */
+    .section-hero .section-drag-handle {
+      background: rgba(0, 0, 0, 0.6);
+      border-color: rgba(255, 255, 255, 0.3);
+      color: white;
+    }
+
+    .section-hero .section-drag-handle:hover {
+      background: rgba(0, 0, 0, 0.8);
+      border-color: white;
+      color: white;
+    }
+
     /* Save indicator toast */
     .save-indicator {
       position: fixed;
@@ -1281,6 +1382,9 @@
 
       // Initialize icon picker grid
       initIconPicker();
+
+      // Initialize drag and drop for section reordering
+      initDragAndDrop();
     }
 
     // Handle click on editable text element
@@ -1499,6 +1603,206 @@
         closeIconPicker();
       }
     });
+
+    // Drag and drop section reordering
+    var draggedSection = null;
+    var draggedSectionId = null;
+
+    function initDragAndDrop() {
+      var sections = previewFrame.querySelectorAll('[data-section-id]');
+      sections.forEach(function(section) {
+        // Add drag handle if not present
+        if (!section.querySelector('.section-drag-handle')) {
+          var handle = document.createElement('div');
+          handle.className = 'section-drag-handle';
+          handle.innerHTML = '<i class="bi bi-grip-vertical"></i>';
+          handle.setAttribute('draggable', 'true');
+          handle.setAttribute('title', 'Drag to reorder');
+          section.appendChild(handle);
+
+          // Add drop indicators
+          var topIndicator = document.createElement('div');
+          topIndicator.className = 'drop-indicator-top';
+          section.appendChild(topIndicator);
+
+          var bottomIndicator = document.createElement('div');
+          bottomIndicator.className = 'drop-indicator-bottom';
+          section.appendChild(bottomIndicator);
+        }
+
+        // Make section draggable via handle
+        var handle = section.querySelector('.section-drag-handle');
+        handle.addEventListener('dragstart', handleDragStart);
+        handle.addEventListener('dragend', handleDragEnd);
+
+        // Section as drop target
+        section.addEventListener('dragover', handleDragOver);
+        section.addEventListener('dragleave', handleDragLeave);
+        section.addEventListener('drop', handleDrop);
+      });
+    }
+
+    function handleDragStart(e) {
+      var section = e.target.closest('[data-section-id]');
+      draggedSection = section;
+      draggedSectionId = section.getAttribute('data-section-id');
+
+      // Use setTimeout to allow the drag image to be captured first
+      setTimeout(function() {
+        section.classList.add('dragging');
+      }, 0);
+
+      e.dataTransfer.effectAllowed = 'move';
+      e.dataTransfer.setData('text/plain', draggedSectionId);
+    }
+
+    function handleDragEnd(e) {
+      if (draggedSection) {
+        draggedSection.classList.remove('dragging');
+      }
+
+      // Remove all drag-over classes
+      var sections = previewFrame.querySelectorAll('[data-section-id]');
+      sections.forEach(function(s) {
+        s.classList.remove('drag-over', 'drag-over-top', 'drag-over-bottom');
+      });
+
+      draggedSection = null;
+      draggedSectionId = null;
+    }
+
+    function handleDragOver(e) {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'move';
+
+      var section = e.target.closest('[data-section-id]');
+      if (!section || section === draggedSection) return;
+
+      // Determine if we're in the top or bottom half
+      var rect = section.getBoundingClientRect();
+      var midpoint = rect.top + rect.height / 2;
+
+      // Remove previous indicators
+      var sections = previewFrame.querySelectorAll('[data-section-id]');
+      sections.forEach(function(s) {
+        if (s !== section) {
+          s.classList.remove('drag-over-top', 'drag-over-bottom');
+        }
+      });
+
+      if (e.clientY < midpoint) {
+        section.classList.remove('drag-over-bottom');
+        section.classList.add('drag-over-top');
+      } else {
+        section.classList.remove('drag-over-top');
+        section.classList.add('drag-over-bottom');
+      }
+    }
+
+    function handleDragLeave(e) {
+      var section = e.target.closest('[data-section-id]');
+      if (!section) return;
+
+      // Only remove if we're actually leaving the section
+      var rect = section.getBoundingClientRect();
+      if (e.clientX < rect.left || e.clientX > rect.right ||
+          e.clientY < rect.top || e.clientY > rect.bottom) {
+        section.classList.remove('drag-over-top', 'drag-over-bottom');
+      }
+    }
+
+    function handleDrop(e) {
+      e.preventDefault();
+
+      var targetSection = e.target.closest('[data-section-id]');
+      if (!targetSection || !draggedSectionId) return;
+
+      var targetSectionId = targetSection.getAttribute('data-section-id');
+      if (targetSectionId === draggedSectionId) return;
+
+      // Determine drop position
+      var rect = targetSection.getBoundingClientRect();
+      var dropBefore = e.clientY < rect.top + rect.height / 2;
+
+      // Reorder sections in config
+      reorderSections(draggedSectionId, targetSectionId, dropBefore);
+
+      // Clean up
+      targetSection.classList.remove('drag-over-top', 'drag-over-bottom');
+    }
+
+    function reorderSections(draggedId, targetId, dropBefore) {
+      if (!siteData || !siteData.draftConfig || !siteData.draftConfig.sections) return;
+
+      var sections = siteData.draftConfig.sections;
+
+      // Find indices
+      var draggedIndex = sections.findIndex(function(s) { return s.id === draggedId; });
+      var targetIndex = sections.findIndex(function(s) { return s.id === targetId; });
+
+      if (draggedIndex === -1 || targetIndex === -1) return;
+
+      // Remove dragged section
+      var draggedItem = sections.splice(draggedIndex, 1)[0];
+
+      // Recalculate target index after removal
+      if (draggedIndex < targetIndex) {
+        targetIndex--;
+      }
+
+      // Insert at new position
+      var insertIndex = dropBefore ? targetIndex : targetIndex + 1;
+      sections.splice(insertIndex, 0, draggedItem);
+
+      // Update order values
+      sections.forEach(function(s, i) {
+        s.order = i;
+      });
+
+      // Save to backend
+      saveSectionOrder();
+
+      // Refresh preview
+      refreshPreview(siteData.draftConfig);
+    }
+
+    function saveSectionOrder() {
+      if (!siteData || !siteData.draftConfig) return;
+
+      console.log('[Builder] Saving section order...');
+
+      fetch('/api/sites/' + siteId, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'same-origin',
+        body: JSON.stringify({ draftConfig: siteData.draftConfig })
+      })
+      .then(function(response) {
+        if (!response.ok) throw new Error('Failed to save');
+        return response.json();
+      })
+      .then(function(data) {
+        console.log('[Builder] Section order saved');
+        showSaveIndicator('Order saved');
+      })
+      .catch(function(error) {
+        console.error('[Builder] Error saving order:', error);
+      });
+    }
+
+    function showSaveIndicator(message) {
+      var existing = document.querySelector('.save-indicator');
+      if (existing) existing.remove();
+
+      var indicator = document.createElement('div');
+      indicator.className = 'save-indicator';
+      indicator.textContent = message || 'Saved';
+      document.body.appendChild(indicator);
+
+      setTimeout(function() {
+        indicator.remove();
+      }, 2000);
+    }
 
     // Save text edit to config
     function saveTextEdit(el, newContent) {

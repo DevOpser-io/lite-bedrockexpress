@@ -187,8 +187,16 @@ router.put('/:id', ensureAuthenticated, async (req, res) => {
     }
 
     if (draftConfig) {
+      // Ensure siteName is present (may be missing in direct updates)
+      if (!draftConfig.siteName && site.draftConfig && site.draftConfig.siteName) {
+        draftConfig.siteName = site.draftConfig.siteName;
+      } else if (!draftConfig.siteName) {
+        draftConfig.siteName = site.name;
+      }
+
       const validation = validateSiteConfig(draftConfig);
       if (!validation.valid) {
+        console.log('[Sites] Validation errors:', validation.errors);
         return res.status(400).json({
           success: false,
           error: 'Invalid configuration',
