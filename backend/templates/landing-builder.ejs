@@ -148,20 +148,39 @@
       border-radius: 12px;
       padding: 14px 18px;
       color: #fff;
-      font-size: 1rem;
+      font-size: 16px; /* Prevents zoom on iOS */
       resize: none;
       min-height: 52px;
       max-height: 150px;
       font-family: inherit;
+      overflow-y: auto;
+      scrollbar-width: none; /* Firefox */
+      -ms-overflow-style: none; /* IE/Edge */
+      -webkit-appearance: none; /* Remove iOS styling */
+    }
+
+    .chat-input::-webkit-scrollbar {
+      display: none; /* Chrome/Safari */
     }
 
     .chat-input:focus {
       outline: none;
       border-color: #667eea;
+      background: #252525; /* Keep dark background on focus */
+      color: #fff; /* Ensure text stays white */
     }
 
     .chat-input::placeholder {
       color: #666;
+    }
+
+    /* Prevent autofill from changing background */
+    .chat-input:-webkit-autofill,
+    .chat-input:-webkit-autofill:hover,
+    .chat-input:-webkit-autofill:focus {
+      -webkit-text-fill-color: #fff;
+      -webkit-box-shadow: 0 0 0px 1000px #252525 inset;
+      transition: background-color 5000s ease-in-out 0s;
     }
 
     .send-button {
@@ -373,12 +392,24 @@
       border: 1px solid #333;
       border-radius: 8px;
       color: #fff;
-      font-size: 1rem;
+      font-size: 16px; /* Prevents zoom on iOS */
+      -webkit-appearance: none;
     }
 
     .auth-modal input:focus {
       outline: none;
       border-color: #667eea;
+      background: #252525;
+      color: #fff;
+    }
+
+    /* Prevent autofill styling on auth inputs */
+    .auth-modal input:-webkit-autofill,
+    .auth-modal input:-webkit-autofill:hover,
+    .auth-modal input:-webkit-autofill:focus {
+      -webkit-text-fill-color: #fff;
+      -webkit-box-shadow: 0 0 0px 1000px #252525 inset;
+      transition: background-color 5000s ease-in-out 0s;
     }
 
     .auth-modal .auth-button {
@@ -546,20 +577,279 @@
       display: block;
     }
 
-    /* Responsive */
+    /* Header right section */
+    .header-right-section {
+      margin-left: auto;
+      display: flex;
+      gap: 12px;
+      align-items: center;
+    }
+
+    /* Hidden buttons */
+    .btn-hidden {
+      display: none;
+    }
+
+    /* Mobile-First Responsive Design */
+
+    /* Safe area support for notched devices (iPhone X+, Android) */
+    @supports (padding: env(safe-area-inset-top)) {
+      body {
+        padding-top: env(safe-area-inset-top);
+        padding-bottom: env(safe-area-inset-bottom);
+        padding-left: env(safe-area-inset-left);
+        padding-right: env(safe-area-inset-right);
+      }
+
+      .chat-input-container {
+        padding-bottom: calc(20px + env(safe-area-inset-bottom));
+      }
+    }
+
+    /* Touch optimizations */
+    * {
+      -webkit-tap-highlight-color: transparent;
+      -webkit-touch-callout: none;
+    }
+
+    /* Momentum scrolling for smooth iOS experience */
+    .chat-messages,
+    .preview-iframe-container {
+      -webkit-overflow-scrolling: touch;
+    }
+
+    /* Mobile view (default for mobile-first) */
     @media (max-width: 768px) {
+      body {
+        height: 100%;
+        height: -webkit-fill-available;
+      }
+
       .builder-container {
         flex-direction: column;
+        height: 100vh;
+        height: -webkit-fill-available;
       }
 
       .chat-sidebar {
         width: 100%;
         min-width: auto;
-        height: 50vh;
+        height: 100%;
+        border-right: none;
+        border-bottom: 1px solid #333;
+      }
+
+      /* Hide preview on mobile - focus on chat */
+      .preview-area {
+        display: none;
+      }
+
+      .chat-header {
+        padding: 16px;
+        position: sticky;
+        top: 0;
+        background: #1a1a1a;
+        z-index: 10;
+      }
+
+      .chat-header .logo {
+        font-size: 1.25rem;
+      }
+
+      .chat-messages {
+        padding: 16px;
+        flex: 1;
+        min-height: 0; /* Important for flex scrolling */
+      }
+
+      .welcome-message {
+        padding: 20px 10px;
+      }
+
+      .welcome-message h2 {
+        font-size: 1.25rem;
+      }
+
+      .example-prompt {
+        padding: 14px 16px;
+        font-size: 0.95rem;
+        /* Larger touch target */
+        min-height: 48px;
+        display: flex;
+        align-items: center;
+      }
+
+      .chat-input-container {
+        padding: 12px 16px;
+        position: sticky;
+        bottom: 0;
+        background: #1a1a1a;
+      }
+
+      .chat-input {
+        padding: 12px 16px;
+        min-height: 48px;
+      }
+
+      .send-button {
+        width: 48px;
+        height: 48px;
+        flex-shrink: 0;
+      }
+
+      .message {
+        max-width: 85%;
+        padding: 10px 14px;
+      }
+
+      /* Auth modal mobile adjustments */
+      .auth-modal {
+        width: 95%;
+        max-width: none;
+        padding: 24px;
+        margin: 16px;
+        max-height: 90vh;
+        overflow-y: auto;
+      }
+
+      .auth-modal h2 {
+        font-size: 1.25rem;
+      }
+
+      .auth-modal input {
+        font-size: 16px; /* Prevents zoom on iOS */
+        padding: 16px;
+      }
+
+      .auth-modal .auth-button {
+        padding: 16px;
+        font-size: 1rem;
+        min-height: 52px;
+      }
+
+      .my-sites-link {
+        padding: 6px 12px;
+        font-size: 0.8rem;
+      }
+    }
+
+    /* Small mobile (iPhone SE, small Android) */
+    @media (max-width: 375px) {
+      .chat-header {
+        padding: 12px;
+      }
+
+      .chat-header .logo {
+        font-size: 1.1rem;
+      }
+
+      .chat-header .tagline {
+        font-size: 0.75rem;
+      }
+
+      .welcome-message h2 {
+        font-size: 1.1rem;
+      }
+
+      .example-prompt {
+        padding: 12px 14px;
+        font-size: 0.85rem;
+      }
+    }
+
+    /* Tablet and larger - show split view */
+    @media (min-width: 769px) {
+      .builder-container {
+        flex-direction: row;
+      }
+
+      .chat-sidebar {
+        width: 400px;
+        min-width: 350px;
+        height: 100vh;
       }
 
       .preview-area {
-        height: 50vh;
+        display: flex;
+        flex: 1;
+        height: 100vh;
+      }
+    }
+
+    /* Large desktop */
+    @media (min-width: 1200px) {
+      .chat-sidebar {
+        width: 450px;
+      }
+    }
+
+    /* Touch device specific (no hover) */
+    @media (hover: none) and (pointer: coarse) {
+      .example-prompt:hover {
+        background: #252525;
+        border-color: #333;
+      }
+
+      .example-prompt:active {
+        background: #2a2a2a;
+        border-color: #667eea;
+        transform: scale(0.98);
+      }
+
+      .send-button:hover {
+        transform: none;
+      }
+
+      .send-button:active {
+        transform: scale(0.95);
+      }
+
+      .auth-modal .auth-button:hover {
+        transform: none;
+      }
+
+      .auth-modal .auth-button:active {
+        transform: scale(0.98);
+      }
+    }
+
+    /* Reduced motion preference */
+    @media (prefers-reduced-motion: reduce) {
+      * {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+
+    /* High contrast mode */
+    @media (prefers-contrast: high) {
+      .chat-input {
+        border-width: 2px;
+      }
+
+      .example-prompt {
+        border-width: 2px;
+      }
+
+      .message.assistant {
+        border: 1px solid #666;
+      }
+    }
+
+    /* Landscape mobile - adjust layout */
+    @media (max-width: 768px) and (orientation: landscape) {
+      .chat-sidebar {
+        height: 100vh;
+        height: -webkit-fill-available;
+      }
+
+      .welcome-message {
+        padding: 10px;
+      }
+
+      .chat-messages {
+        padding: 10px 16px;
       }
     }
   </style>
@@ -573,7 +863,7 @@
           <div class="logo">DevOpser</div>
           <div class="tagline">AI Website Builder</div>
         </div>
-        <div style="margin-left: auto; display: flex; gap: 12px; align-items: center;">
+        <div class="header-right-section">
           <a href="/sites" class="my-sites-link" id="mySitesLink">My Sites</a>
           <div class="user-menu" id="userMenu">
             <div class="user-avatar" id="userAvatar"></div>
@@ -629,8 +919,8 @@
           <span id="previewUrlText">your-site.devopser.io</span>
         </div>
         <div class="preview-actions">
-          <button class="preview-action-btn" id="editSectionsBtn" style="display: none;">Edit Sections</button>
-          <button class="preview-action-btn primary" id="publishBtn" style="display: none;">Publish</button>
+          <button class="preview-action-btn btn-hidden" id="editSectionsBtn">Edit Sections</button>
+          <button class="preview-action-btn primary btn-hidden" id="publishBtn">Publish</button>
         </div>
       </div>
 
@@ -888,7 +1178,7 @@
             currentSiteConfig = result.siteConfig;
             renderPreview(result.siteConfig);
             updatePreviewUrl(site.slug);
-            publishBtn.style.display = 'block';
+            publishBtn.classList.remove('btn-hidden');
           }
 
           if (result.message) {

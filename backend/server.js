@@ -398,6 +398,8 @@ app.use((err, req, res, next) => {
       // Paths that don't require authentication
       const publicPaths = [
         '/',                    // Landing page (builder interface)
+        '/mobile-builder.html', // Mobile builder (same as landing)
+        '/mobile-app.html',     // Legacy mobile app
         '/auth/login',
         '/auth/signup',
         '/auth/verify-email',

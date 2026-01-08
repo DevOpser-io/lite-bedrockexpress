@@ -1,15 +1,16 @@
 {
-  "appId": "com.bedrockexpress.chat",
-  "appName": "Bedrock Chat",
+  "appId": "io.devopser.builder",
+  "appName": "DevOpser",
   "webDir": "frontend/public/static/dist",
   "bundledWebRuntime": false,
   "server": {
+    "androidScheme": "https",
     "cleartext": true,
     "allowNavigation": [
       "http://localhost:*",
       "https://localhost",
-      "http://*.example.com",
-      "https://*.example.com",
+      "https://*.devopser.io",
+      "http://*.devopser.io",
       "capacitor://localhost",
       "ionic://localhost"
     ]
@@ -26,7 +27,7 @@
   },
   "plugins": {
     "Storage": {
-      "group": "BedrockChatStorage"
+      "group": "DevOpserStorage"
     },
     "Keyboard": {
       "resize": "body",
@@ -34,11 +35,11 @@
     },
     "SplashScreen": {
       "launchShowDuration": 2000,
-      "backgroundColor": "#2c3e50",
+      "backgroundColor": "#0f0f0f",
       "showSpinner": false,
       "androidSpinnerStyle": "small",
       "iosSpinnerStyle": "small",
-      "spinnerColor": "#ffffff"
+      "spinnerColor": "#667eea"
     }
   }
 }

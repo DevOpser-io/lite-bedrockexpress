@@ -17,6 +17,13 @@
     :root {
       --sidebar-width: 350px;
       --preview-bg: #f8f9fa;
+      --primary-color: #3B82F6;
+      --secondary-color: #10B981;
+    }
+
+    /* Status icon - small dot */
+    .status-icon-dot {
+      font-size: 0.5rem;
     }
 
     html, body {
@@ -340,7 +347,7 @@
             <li class="nav-item">
               <span class="nav-link">
                 <span class="status-badge status-<%= site.status %>">
-                  <i class="bi bi-circle-fill" style="font-size: 0.5rem;"></i>
+                  <i class="bi bi-circle-fill status-icon-dot"></i>
                   <%= site.status.charAt(0).toUpperCase() + site.status.slice(1) %>
                 </span>
               </span>
@@ -582,9 +589,7 @@
       const primaryColor = config.theme?.primaryColor || '#3B82F6';
       const secondaryColor = config.theme?.secondaryColor || '#10B981';
 
-      let html = `
-        <div class="site-preview" style="--primary-color: ${primaryColor}; --secondary-color: ${secondaryColor};">
-      `;
+      let html = '<div class="site-preview" id="sitePreviewContent">';
 
       const sections = (config.sections || [])
         .filter(s => s.visible !== false)
@@ -592,61 +597,59 @@
 
       sections.forEach(section => {
         if (section.type === 'hero') {
-          html += `
-            <div class="section-hero">
-              <h1>${escapeHtml(section.content.headline || '')}</h1>
-              <p>${escapeHtml(section.content.subheadline || '')}</p>
-              ${section.content.ctaText ? `<a href="${escapeHtml(section.content.ctaLink || '#')}" class="cta-btn">${escapeHtml(section.content.ctaText)}</a>` : ''}
-            </div>
-          `;
+          html += '<div class="section-hero">';
+          html += '<h1>' + escapeHtml(section.content.headline || '') + '</h1>';
+          html += '<p>' + escapeHtml(section.content.subheadline || '') + '</p>';
+          if (section.content.ctaText) {
+            html += '<a href="' + escapeHtml(section.content.ctaLink || '#') + '" class="cta-btn">' + escapeHtml(section.content.ctaText) + '</a>';
+          }
+          html += '</div>';
         } else if (section.type === 'features') {
-          html += `
-            <div class="section-features">
-              <h2>${escapeHtml(section.content.title || '')}</h2>
-              <div class="features-grid">
-                ${(section.content.items || []).map(item => `
-                  <div class="feature-item">
-                    <div class="feature-icon"><i class="bi bi-${escapeHtml(item.icon || 'star')}"></i></div>
-                    <h3>${escapeHtml(item.title || '')}</h3>
-                    <p>${escapeHtml(item.description || '')}</p>
-                  </div>
-                `).join('')}
-              </div>
-            </div>
-          `;
+          html += '<div class="section-features">';
+          html += '<h2>' + escapeHtml(section.content.title || '') + '</h2>';
+          html += '<div class="features-grid">';
+          (section.content.items || []).forEach(function(item) {
+            html += '<div class="feature-item">';
+            html += '<div class="feature-icon"><i class="bi bi-' + escapeHtml(item.icon || 'star') + '"></i></div>';
+            html += '<h3>' + escapeHtml(item.title || '') + '</h3>';
+            html += '<p>' + escapeHtml(item.description || '') + '</p>';
+            html += '</div>';
+          });
+          html += '</div></div>';
         } else if (section.type === 'about') {
-          html += `
-            <div class="section-about">
-              <h2>${escapeHtml(section.content.title || '')}</h2>
-              <p>${escapeHtml(section.content.content || '')}</p>
-            </div>
-          `;
+          html += '<div class="section-about">';
+          html += '<h2>' + escapeHtml(section.content.title || '') + '</h2>';
+          html += '<p>' + escapeHtml(section.content.content || '') + '</p>';
+          html += '</div>';
         } else if (section.type === 'contact') {
-          html += `
-            <div class="section-contact">
-              <h2>${escapeHtml(section.content.title || '')}</h2>
-              <p>${escapeHtml(section.content.subtitle || '')}</p>
-              ${section.content.email ? `<p><i class="bi bi-envelope me-2"></i>${escapeHtml(section.content.email)}</p>` : ''}
-            </div>
-          `;
+          html += '<div class="section-contact">';
+          html += '<h2>' + escapeHtml(section.content.title || '') + '</h2>';
+          html += '<p>' + escapeHtml(section.content.subtitle || '') + '</p>';
+          if (section.content.email) {
+            html += '<p><i class="bi bi-envelope me-2"></i>' + escapeHtml(section.content.email) + '</p>';
+          }
+          html += '</div>';
         } else if (section.type === 'footer') {
-          html += `
-            <div class="section-footer">
-              <p>${escapeHtml(section.content.copyright || '© ' + new Date().getFullYear() + ' ' + (section.content.companyName || config.siteName || ''))}</p>
-            </div>
-          `;
+          var copyright = section.content.copyright || ('© ' + new Date().getFullYear() + ' ' + (section.content.companyName || config.siteName || ''));
+          html += '<div class="section-footer">';
+          html += '<p>' + escapeHtml(copyright) + '</p>';
+          html += '</div>';
         }
       });
 
       html += '</div>';
 
-      previewFrame.innerHTML = sections.length > 0 ? html : `
-        <div class="empty-state">
-          <i class="bi bi-easel"></i>
-          <h5>No preview yet</h5>
-          <p>Describe your website in the chat to get started!</p>
-        </div>
-      `;
+      if (sections.length > 0) {
+        previewFrame.innerHTML = html;
+        // Set CSS variables via JavaScript to avoid inline style CSP violation
+        var previewEl = document.getElementById('sitePreviewContent');
+        if (previewEl) {
+          previewEl.style.setProperty('--primary-color', primaryColor);
+          previewEl.style.setProperty('--secondary-color', secondaryColor);
+        }
+      } else {
+        previewFrame.innerHTML = '<div class="empty-state"><i class="bi bi-easel"></i><h5>No preview yet</h5><p>Describe your website in the chat to get started!</p></div>';
+      }
     }
 
     // Escape HTML
