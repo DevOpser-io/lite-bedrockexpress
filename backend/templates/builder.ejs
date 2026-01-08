@@ -89,6 +89,15 @@
       max-width: 100%;
     }
 
+    .chat-message.tools-used {
+      background: #d1e7dd;
+      color: #0f5132;
+      font-size: 0.75rem;
+      text-align: center;
+      max-width: 100%;
+      padding: 0.5rem;
+    }
+
     .chat-input-container {
       padding: 1rem;
       border-top: 1px solid #dee2e6;
@@ -344,13 +353,24 @@
           </ul>
           <ul class="navbar-nav">
             <% if (site) { %>
-            <li class="nav-item">
-              <span class="nav-link">
+            <li class="nav-item dropdown">
+              <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                 <span class="status-badge status-<%= site.status %>">
                   <i class="bi bi-circle-fill status-icon-dot"></i>
                   <%= site.status.charAt(0).toUpperCase() + site.status.slice(1) %>
                 </span>
-              </span>
+              </a>
+              <ul class="dropdown-menu dropdown-menu-end">
+                <li><h6 class="dropdown-header">Site Status</h6></li>
+                <li><span class="dropdown-item-text small text-muted"><%= site.slug %>.devopser.io</span></li>
+                <li><hr class="dropdown-divider"></li>
+                <li><h6 class="dropdown-header text-danger">Danger Zone</h6></li>
+                <li>
+                  <button class="dropdown-item text-danger" id="delete-site-btn">
+                    <i class="bi bi-trash me-2"></i>Delete Site
+                  </button>
+                </li>
+              </ul>
             </li>
             <% } %>
             <li class="nav-item">
@@ -406,6 +426,7 @@
           <% } %>
         </div>
       </div>
+
     </div>
 
     <!-- Preview Area -->
@@ -524,6 +545,14 @@
       chatMessages.scrollTop = chatMessages.scrollHeight;
     }
 
+    // Add tools used indicator
+    function addToolsUsedMessage(toolNames) {
+      const div = document.createElement('div');
+      div.className = 'chat-message tools-used';
+      div.innerHTML = '<i class="bi bi-tools me-1"></i> Used: ' + escapeHtml(toolNames);
+      chatMessages.appendChild(div);
+    }
+
     // Send chat message
     async function sendMessage() {
       const message = chatInput.value.trim();
@@ -556,6 +585,12 @@
         const data = await response.json();
 
         if (data.success) {
+          // Show tools used if any
+          if (data.toolsUsed && data.toolsUsed.length > 0) {
+            const toolNames = data.toolsUsed.map(t => t.name.replace(/_/g, ' ')).join(', ');
+            addToolsUsedMessage(toolNames);
+          }
+
           // Add AI response to chat
           addMessage('assistant', data.message);
           chatHistory.push({ role: 'assistant', content: data.message });
@@ -563,6 +598,8 @@
           // Refresh preview if config changed
           if (data.site && data.site.draftConfig) {
             refreshPreview(data.site.draftConfig);
+            // Update local siteData
+            siteData.draftConfig = data.site.draftConfig;
 
             // Show publish button if we now have content
             if (data.site.draftConfig.sections && data.site.draftConfig.sections.length > 0) {
@@ -714,6 +751,52 @@
       refreshPreviewBtn.addEventListener('click', () => {
         if (siteData && siteData.draftConfig) {
           refreshPreview(siteData.draftConfig);
+        }
+      });
+    }
+
+    // Delete site (in status dropdown)
+    const deleteSiteBtn = document.getElementById('delete-site-btn');
+    if (deleteSiteBtn) {
+      deleteSiteBtn.addEventListener('click', async () => {
+        const siteName = siteData ? siteData.name : 'this site';
+        const confirmMsg = `Are you sure you want to delete "${siteName}"?\n\nThis action cannot be undone. All site data will be permanently deleted.`;
+
+        if (!confirm(confirmMsg)) {
+          return;
+        }
+
+        // Double confirm for safety
+        const confirmAgain = prompt(`Type "DELETE" to confirm deletion of "${siteName}":`);
+        if (confirmAgain !== 'DELETE') {
+          alert('Deletion cancelled. You must type DELETE to confirm.');
+          return;
+        }
+
+        deleteSiteBtn.disabled = true;
+        deleteSiteBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Deleting...';
+
+        try {
+          const response = await fetch(`/api/sites/${siteId}`, {
+            method: 'DELETE',
+            credentials: 'same-origin'
+          });
+
+          const data = await response.json();
+
+          if (data.success) {
+            alert('Site deleted successfully.');
+            window.location.href = '/sites';
+          } else {
+            alert('Error: ' + (data.error || 'Failed to delete site'));
+            deleteSiteBtn.disabled = false;
+            deleteSiteBtn.innerHTML = '<i class="bi bi-trash me-1"></i> Delete Site';
+          }
+        } catch (error) {
+          console.error('Delete error:', error);
+          alert('Error: Failed to delete site. Please try again.');
+          deleteSiteBtn.disabled = false;
+          deleteSiteBtn.innerHTML = '<i class="bi bi-trash me-1"></i> Delete Site';
         }
       });
     }

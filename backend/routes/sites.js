@@ -9,7 +9,7 @@ const express = require('express');
 const router = express.Router();
 const { ensureAuthenticated } = require('../middleware/authMiddleware');
 const db = require('../models');
-const { processMessage, generateSiteFromDescription } = require('../services/websiteAgentService');
+const { processWithTools, generateSiteFromDescription } = require('../services/websiteAgentServiceV2');
 const { createSiteConfig, validateSiteConfig } = require('../services/templateService');
 
 /**
@@ -291,20 +291,20 @@ router.post('/:id/chat', ensureAuthenticated, async (req, res) => {
 
     console.log(`[Sites] Chat message for site ${site.id}: ${message.substring(0, 100)}`);
 
-    // Process the message with the AI agent
-    const result = await processMessage(message, site.draftConfig, history);
+    // Process the message with the AI agent (using tool use)
+    const result = await processWithTools(message, site.draftConfig, history);
 
     // Update the site if there were changes
-    if (result.newConfig && result.action !== 'error' && result.action !== 'clarify') {
+    if (result.newConfig) {
       site.draftConfig = result.newConfig;
       await site.save();
-      console.log(`[Sites] Updated site ${site.id} config via chat`);
+      console.log(`[Sites] Updated site ${site.id} config via chat. Tools used: ${result.toolsUsed?.map(t => t.name).join(', ') || 'none'}`);
     }
 
     res.json({
       success: true,
-      action: result.action,
       message: result.message,
+      toolsUsed: result.toolsUsed || [],
       site: site.toPublicJSON(),
       siteConfig: site.draftConfig // Convenience for frontend preview
     });

@@ -98,7 +98,7 @@ module.exports = {
   bedrock: {
     region: process.env.REGION || 'us-east-1',
     modelId: process.env.BEDROCK_MODEL_ID || 'us.anthropic.claude-sonnet-4-5-20250929-v1:0', // Using Claude Sonnet 4.5 inference profile
-    maxTokens: parseInt(process.env.MAX_TOKENS || '2048'),
+    maxTokens: parseInt(process.env.MAX_TOKENS || '4096'),
     temperature: parseFloat(process.env.TEMPERATURE || '0.7'),
   },
 

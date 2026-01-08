@@ -358,10 +358,19 @@ function sanitizeConfig(config) {
     if (section.order === undefined) {
       section.order = index;
     }
-    if (!section.content) {
-      const schema = SECTION_SCHEMAS[section.type];
-      section.content = schema ? { ...schema.defaultContent } : {};
+
+    // Deep merge content with defaults
+    const schema = SECTION_SCHEMAS[section.type];
+    if (schema) {
+      const defaultContent = schema.defaultContent || {};
+      const existingContent = section.content || {};
+
+      // Merge content, filling in missing required fields with defaults
+      section.content = deepMergeWithDefaults(existingContent, defaultContent, schema.schema);
+    } else if (!section.content) {
+      section.content = {};
     }
+
     return section;
   });
 
@@ -369,6 +378,104 @@ function sanitizeConfig(config) {
   sanitized.sections.sort((a, b) => a.order - b.order);
 
   return sanitized;
+}
+
+/**
+ * Deep merge content with defaults, ensuring required fields are filled
+ * @param {Object} content - User-provided content
+ * @param {Object} defaults - Default content
+ * @param {Object} schema - Content schema
+ * @returns {Object} - Merged content
+ */
+function deepMergeWithDefaults(content, defaults, schema) {
+  const result = {};
+
+  // Start with all fields from defaults
+  for (const [key, defaultValue] of Object.entries(defaults)) {
+    const userValue = content[key];
+    const fieldSchema = schema ? schema[key] : null;
+
+    if (userValue === undefined || userValue === null) {
+      // Use default value
+      result[key] = Array.isArray(defaultValue)
+        ? [...defaultValue]
+        : (typeof defaultValue === 'object' && defaultValue !== null)
+          ? { ...defaultValue }
+          : defaultValue;
+    } else if (Array.isArray(userValue) && Array.isArray(defaultValue)) {
+      // For arrays, validate items if they have an itemSchema
+      if (fieldSchema && fieldSchema.itemSchema) {
+        result[key] = userValue.map((item, idx) => {
+          if (typeof item === 'object' && item !== null) {
+            // Merge each array item with defaults from the first default item
+            const defaultItem = defaultValue[0] || {};
+            return mergeArrayItem(item, defaultItem, fieldSchema.itemSchema);
+          }
+          return item;
+        });
+      } else {
+        result[key] = userValue;
+      }
+    } else if (typeof userValue === 'object' && typeof defaultValue === 'object' &&
+               userValue !== null && defaultValue !== null && !Array.isArray(userValue)) {
+      // Recursively merge nested objects
+      result[key] = { ...defaultValue, ...userValue };
+    } else {
+      // Use user value
+      result[key] = userValue;
+    }
+  }
+
+  // Include any user fields not in defaults
+  for (const [key, value] of Object.entries(content)) {
+    if (!(key in result)) {
+      result[key] = value;
+    }
+  }
+
+  return result;
+}
+
+/**
+ * Merge an array item with defaults, ensuring required fields are present
+ * @param {Object} item - User-provided item
+ * @param {Object} defaultItem - Default item
+ * @param {Object} itemSchema - Schema for the item
+ * @returns {Object} - Merged item
+ */
+function mergeArrayItem(item, defaultItem, itemSchema) {
+  const result = { ...item };
+
+  // Fill in missing required fields from defaults
+  for (const [key, fieldDef] of Object.entries(itemSchema || {})) {
+    if (fieldDef.required && (result[key] === undefined || result[key] === null || result[key] === '')) {
+      // Use default value if available
+      if (defaultItem[key] !== undefined) {
+        result[key] = defaultItem[key];
+      } else {
+        // Provide a sensible default based on type
+        switch (fieldDef.type) {
+          case 'string':
+          case 'text':
+            result[key] = 'Default text';
+            break;
+          case 'url':
+            result[key] = '#';
+            break;
+          case 'enum':
+            result[key] = fieldDef.values ? fieldDef.values[0] : '';
+            break;
+          case 'boolean':
+            result[key] = false;
+            break;
+          default:
+            result[key] = '';
+        }
+      }
+    }
+  }
+
+  return result;
 }
 
 /**

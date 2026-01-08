@@ -1155,11 +1155,12 @@
             throw new Error('Failed to create site');
           }
 
-          const site = await createResponse.json();
-          currentSiteId = site.id;
+          const response = await createResponse.json();
+          const siteData = response.site;
+          currentSiteId = siteData.id;
 
           // Now chat with the AI to generate the site
-          const chatResponse = await fetch(`/api/sites/${site.id}/chat`, {
+          const chatResponse = await fetch(`/api/sites/${siteData.id}/chat`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ message: prompt })
@@ -1177,7 +1178,7 @@
           if (result.siteConfig) {
             currentSiteConfig = result.siteConfig;
             renderPreview(result.siteConfig);
-            updatePreviewUrl(site.slug);
+            updatePreviewUrl(siteData.slug);
             publishBtn.classList.remove('btn-hidden');
           }
 

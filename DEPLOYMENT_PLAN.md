@@ -1,0 +1,760 @@
+# DevOpser Lite - Deployment Implementation Plan
+
+## Current State
+
+The DevOpser Lite application currently has:
+- Chat-first builder interface (landing page IS the builder)
+- AI-powered site configuration generation via Claude/Bedrock
+- Draft/Published state management in PostgreSQL
+- Magic link authentication with inline modal
+- Mobile-optimized UI (Capacitor-ready)
+
+**What's SIMULATED (not actually implemented):**
+- GitHub repository creation
+- Container builds
+- Lightsail deployment
+- DNS/subdomain routing
+- The "publish" feature just waits 5 seconds and marks status as published
+
+---
+
+## Architecture Overview
+
+```
+┌─────────────────────────────────────────────────────────────────────────┐
+│                          User Flow                                       │
+├─────────────────────────────────────────────────────────────────────────┤
+│                                                                          │
+│  1. User visits devopser.io (builder interface)                         │
+│  2. User describes website in chat                                       │
+│  3. AI generates site configuration (JSON)                               │
+│  4. User authenticates via modal                                         │
+│  5. Site saved to database (draft)                                       │
+│  6. User clicks "Publish"                                                │
+│                                                                          │
+│  ┌─────────────────────────────────────────────────────────────────┐    │
+│  │                    DEPLOYMENT PIPELINE                           │    │
+│  │                                                                  │    │
+│  │  ┌──────────┐    ┌──────────┐    ┌──────────┐    ┌──────────┐  │    │
+│  │  │ GitHub   │───▶│ GitHub   │───▶│   ECR    │───▶│Lightsail │  │    │
+│  │  │ Repo     │    │ Actions  │    │  Image   │    │Container │  │    │
+│  │  └──────────┘    └──────────┘    └──────────┘    └──────────┘  │    │
+│  │                                                                  │    │
+│  └─────────────────────────────────────────────────────────────────┘    │
+│                                                                          │
+│  7. Site live at {slug}.devopser.io                                     │
+│                                                                          │
+└─────────────────────────────────────────────────────────────────────────┘
+```
+
+---
+
+## Prerequisites (Manual Setup Required)
+
+### 1. GitHub Organization & App
+
+**Create GitHub Organization:**
+- Organization name: `devopser-sites` (or similar)
+- Purpose: Host customer site repositories
+
+**Create GitHub App (preferred over PAT):**
+```
+App Name: DevOpser Site Builder
+Permissions Required:
+  - Repository: Administration (Read & Write)
+  - Repository: Contents (Read & Write)
+  - Repository: Workflows (Read & Write)
+  - Organization: Members (Read)
+
+Installation: Install on devopser-sites organization
+```
+
+**Store Credentials:**
+- GitHub App ID → AWS Secrets Manager or `.env`
+- GitHub App Private Key → AWS Secrets Manager or `.env`
+- GitHub App Installation ID → AWS Secrets Manager or `.env`
+
+### 2. AWS Resources
+
+**ECR Repository:**
+```bash
+aws ecr create-repository \
+  --repository-name devopser-sites \
+  --region us-east-1
+```
+
+**IAM Policy for EC2 Instance:**
+```json
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "LightsailAccess",
+      "Effect": "Allow",
+      "Action": [
+        "lightsail:CreateContainerService",
+        "lightsail:CreateContainerServiceDeployment",
+        "lightsail:GetContainerServices",
+        "lightsail:GetContainerServiceDeployments",
+        "lightsail:DeleteContainerService",
+        "lightsail:UpdateContainerService",
+        "lightsail:GetContainerServicePowers"
+      ],
+      "Resource": "*"
+    },
+    {
+      "Sid": "ECRAccess",
+      "Effect": "Allow",
+      "Action": [
+        "ecr:GetAuthorizationToken",
+        "ecr:BatchCheckLayerAvailability",
+        "ecr:GetDownloadUrlForLayer",
+        "ecr:BatchGetImage",
+        "ecr:PutImage",
+        "ecr:InitiateLayerUpload",
+        "ecr:UploadLayerPart",
+        "ecr:CompleteLayerUpload"
+      ],
+      "Resource": "*"
+    }
+  ]
+}
+```
+
+**Route53 Hosted Zone:**
+- Domain: `devopser.io`
+- Create wildcard record: `*.devopser.io` → CNAME to Lightsail endpoints
+
+### 3. Base Template Repository
+
+Create repository: `devopser-sites/base-template`
+
+```
+base-template/
+├── app/
+│   ├── page.tsx              # Main page, reads site-config.json
+│   ├── layout.tsx            # Root layout with theme
+│   └── components/
+│       ├── Hero.tsx
+│       ├── Features.tsx
+│       ├── About.tsx
+│       ├── Testimonials.tsx
+│       ├── Pricing.tsx
+│       ├── Contact.tsx
+│       └── Footer.tsx
+├── public/
+│   └── images/
+├── site-config.json          # Generated by AI agent (placeholder)
+├── Dockerfile
+├── .github/
+│   └── workflows/
+│       └── deploy.yml        # Build & deploy to Lightsail
+├── package.json
+├── next.config.js
+└── tailwind.config.js
+```
+
+---
+
+## Implementation Tasks
+
+### Phase 1: GitHub Service
+
+**File:** `backend/services/githubService.js`
+
+```javascript
+const { Octokit } = require('@octokit/rest');
+const { createAppAuth } = require('@octokit/auth-app');
+
+class GitHubService {
+  constructor() {
+    this.octokit = new Octokit({
+      authStrategy: createAppAuth,
+      auth: {
+        appId: process.env.GITHUB_APP_ID,
+        privateKey: process.env.GITHUB_PRIVATE_KEY,
+        installationId: process.env.GITHUB_INSTALLATION_ID,
+      },
+    });
+    this.org = process.env.GITHUB_ORG || 'devopser-sites';
+    this.templateRepo = process.env.GITHUB_TEMPLATE_REPO || 'base-template';
+  }
+
+  /**
+   * Create a new repository for a site from template
+   */
+  async createSiteRepo(site) {
+    const repoName = `site-${site.id}-${site.slug}`;
+
+    // Create repo from template
+    const { data: repo } = await this.octokit.repos.createUsingTemplate({
+      template_owner: this.org,
+      template_repo: this.templateRepo,
+      owner: this.org,
+      name: repoName,
+      private: true,
+      description: `DevOpser site: ${site.name}`,
+    });
+
+    return repo;
+  }
+
+  /**
+   * Commit site configuration to repository
+   */
+  async commitSiteConfig(site, config) {
+    const repoName = `site-${site.id}-${site.slug}`;
+    const content = Buffer.from(JSON.stringify(config, null, 2)).toString('base64');
+
+    // Get current file SHA (if exists)
+    let sha;
+    try {
+      const { data } = await this.octokit.repos.getContent({
+        owner: this.org,
+        repo: repoName,
+        path: 'site-config.json',
+      });
+      sha = data.sha;
+    } catch (e) {
+      // File doesn't exist yet
+    }
+
+    // Create or update file
+    await this.octokit.repos.createOrUpdateFileContents({
+      owner: this.org,
+      repo: repoName,
+      path: 'site-config.json',
+      message: 'Update site configuration',
+      content,
+      sha,
+    });
+
+    return `https://github.com/${this.org}/${repoName}`;
+  }
+
+  /**
+   * Trigger GitHub Actions workflow
+   */
+  async triggerDeployment(site) {
+    const repoName = `site-${site.id}-${site.slug}`;
+
+    await this.octokit.actions.createWorkflowDispatch({
+      owner: this.org,
+      repo: repoName,
+      workflow_id: 'deploy.yml',
+      ref: 'main',
+      inputs: {
+        site_id: String(site.id),
+        slug: site.slug,
+      },
+    });
+  }
+
+  /**
+   * Delete site repository
+   */
+  async deleteSiteRepo(site) {
+    const repoName = `site-${site.id}-${site.slug}`;
+
+    await this.octokit.repos.delete({
+      owner: this.org,
+      repo: repoName,
+    });
+  }
+}
+
+module.exports = new GitHubService();
+```
+
+### Phase 2: Lightsail Service
+
+**File:** `backend/services/lightsailService.js`
+
+```javascript
+const AWS = require('aws-sdk');
+
+class LightsailService {
+  constructor() {
+    this.lightsail = new AWS.Lightsail({ region: 'us-east-1' });
+    this.ecrRegistry = process.env.ECR_REGISTRY; // e.g., 123456789.dkr.ecr.us-east-1.amazonaws.com
+  }
+
+  /**
+   * Create a new container service for a site
+   */
+  async createContainerService(site) {
+    const serviceName = `devopser-${site.slug}`;
+
+    const params = {
+      serviceName,
+      power: 'nano', // Smallest tier: 0.25 vCPU, 512MB RAM
+      scale: 1,
+      tags: [
+        { key: 'SiteId', value: String(site.id) },
+        { key: 'Slug', value: site.slug },
+        { key: 'Project', value: 'DevOpser' },
+      ],
+    };
+
+    const result = await this.lightsail.createContainerService(params).promise();
+    return result.containerService;
+  }
+
+  /**
+   * Deploy container to service
+   */
+  async deployContainer(site, imageTag) {
+    const serviceName = `devopser-${site.slug}`;
+    const image = `${this.ecrRegistry}/devopser-sites:${imageTag}`;
+
+    const params = {
+      serviceName,
+      containers: {
+        web: {
+          image,
+          ports: {
+            80: 'HTTP',
+          },
+          environment: {
+            NODE_ENV: 'production',
+            SITE_ID: String(site.id),
+          },
+        },
+      },
+      publicEndpoint: {
+        containerName: 'web',
+        containerPort: 80,
+        healthCheck: {
+          path: '/',
+          intervalSeconds: 30,
+          timeoutSeconds: 5,
+        },
+      },
+    };
+
+    const result = await this.lightsail.createContainerServiceDeployment(params).promise();
+    return result.containerService;
+  }
+
+  /**
+   * Get container service status
+   */
+  async getServiceStatus(site) {
+    const serviceName = `devopser-${site.slug}`;
+
+    const result = await this.lightsail.getContainerServices({
+      serviceName,
+    }).promise();
+
+    if (result.containerServices.length === 0) {
+      return null;
+    }
+
+    const service = result.containerServices[0];
+    return {
+      state: service.state,
+      url: service.url,
+      currentDeployment: service.currentDeployment,
+    };
+  }
+
+  /**
+   * Delete container service
+   */
+  async deleteContainerService(site) {
+    const serviceName = `devopser-${site.slug}`;
+
+    await this.lightsail.deleteContainerService({
+      serviceName,
+    }).promise();
+  }
+
+  /**
+   * Get public URL for site
+   */
+  getPublicUrl(site) {
+    // Lightsail provides URLs like: container-service-name.region.cs.amazonlightsail.com
+    // We'll use our own subdomain via Route53 CNAME
+    return `https://${site.slug}.devopser.io`;
+  }
+}
+
+module.exports = new LightsailService();
+```
+
+### Phase 3: Updated Deployment Flow
+
+**File:** `backend/routes/sites.js` (update publish endpoint)
+
+```javascript
+const githubService = require('../services/githubService');
+const lightsailService = require('../services/lightsailService');
+
+// POST /api/sites/:id/publish
+router.post('/:id/publish', requireAuth, async (req, res) => {
+  try {
+    const site = await Site.findOne({
+      where: { id: req.params.id, userId: req.user.id }
+    });
+
+    if (!site) {
+      return res.status(404).json({ error: 'Site not found' });
+    }
+
+    if (!site.draftConfig) {
+      return res.status(400).json({ error: 'No draft configuration to publish' });
+    }
+
+    // Create deployment record
+    const deployment = await Deployment.create({
+      siteId: site.id,
+      status: 'pending',
+      configSnapshot: site.draftConfig
+    });
+
+    // Start async deployment
+    triggerDeployment(site, deployment).catch(err => {
+      console.error('Deployment failed:', err);
+    });
+
+    res.json({
+      message: 'Deployment started',
+      deployment: {
+        id: deployment.id,
+        status: deployment.status
+      }
+    });
+  } catch (error) {
+    console.error('Error publishing site:', error);
+    res.status(500).json({ error: 'Failed to start deployment' });
+  }
+});
+
+/**
+ * Actual deployment pipeline
+ */
+async function triggerDeployment(site, deployment) {
+  try {
+    // Step 1: Update status
+    await deployment.update({ status: 'creating_repo' });
+
+    // Step 2: Create or update GitHub repo
+    if (!site.githubRepoUrl) {
+      const repo = await githubService.createSiteRepo(site);
+      site.githubRepoUrl = repo.html_url;
+      await site.save();
+    }
+
+    // Step 3: Commit site configuration
+    await deployment.update({ status: 'committing_config' });
+    await githubService.commitSiteConfig(site, deployment.configSnapshot);
+
+    // Step 4: Create Lightsail container service (if not exists)
+    await deployment.update({ status: 'creating_service' });
+    const serviceStatus = await lightsailService.getServiceStatus(site);
+    if (!serviceStatus) {
+      await lightsailService.createContainerService(site);
+      // Wait for service to be ready
+      await waitForServiceReady(site);
+    }
+
+    // Step 5: Trigger GitHub Actions to build and deploy
+    await deployment.update({ status: 'building' });
+    await githubService.triggerDeployment(site);
+
+    // Step 6: Wait for deployment to complete
+    await deployment.update({ status: 'deploying' });
+    await waitForDeploymentComplete(site, deployment);
+
+    // Step 7: Update site status
+    site.status = 'published';
+    site.publishedConfig = deployment.configSnapshot;
+    site.lightsailEndpoint = lightsailService.getPublicUrl(site);
+    await site.save();
+
+    await deployment.update({
+      status: 'success',
+      completedAt: new Date()
+    });
+
+  } catch (error) {
+    console.error('Deployment error:', error);
+    await deployment.update({
+      status: 'failed',
+      errorMessage: error.message,
+      completedAt: new Date()
+    });
+    throw error;
+  }
+}
+
+async function waitForServiceReady(site, maxWaitMs = 300000) {
+  const startTime = Date.now();
+  while (Date.now() - startTime < maxWaitMs) {
+    const status = await lightsailService.getServiceStatus(site);
+    if (status && status.state === 'RUNNING') {
+      return;
+    }
+    await new Promise(resolve => setTimeout(resolve, 10000));
+  }
+  throw new Error('Timeout waiting for Lightsail service to be ready');
+}
+
+async function waitForDeploymentComplete(site, deployment, maxWaitMs = 600000) {
+  const startTime = Date.now();
+  while (Date.now() - startTime < maxWaitMs) {
+    const status = await lightsailService.getServiceStatus(site);
+    if (status && status.currentDeployment) {
+      if (status.currentDeployment.state === 'ACTIVE') {
+        return;
+      }
+      if (status.currentDeployment.state === 'FAILED') {
+        throw new Error('Lightsail deployment failed');
+      }
+    }
+    await new Promise(resolve => setTimeout(resolve, 15000));
+  }
+  throw new Error('Timeout waiting for deployment to complete');
+}
+```
+
+### Phase 4: GitHub Actions Workflow
+
+**File:** `base-template/.github/workflows/deploy.yml`
+
+```yaml
+name: Build and Deploy to Lightsail
+
+on:
+  workflow_dispatch:
+    inputs:
+      site_id:
+        description: 'Site ID'
+        required: true
+      slug:
+        description: 'Site slug'
+        required: true
+
+env:
+  AWS_REGION: us-east-1
+  ECR_REPOSITORY: devopser-sites
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build and push Docker image
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          IMAGE_TAG: site-${{ github.event.inputs.site_id }}-${{ github.sha }}
+        run: |
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+          echo "image_tag=$IMAGE_TAG" >> $GITHUB_OUTPUT
+
+      - name: Deploy to Lightsail
+        env:
+          SITE_SLUG: ${{ github.event.inputs.slug }}
+          IMAGE_TAG: site-${{ github.event.inputs.site_id }}-${{ github.sha }}
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+        run: |
+          # Deploy container to Lightsail
+          aws lightsail create-container-service-deployment \
+            --service-name devopser-$SITE_SLUG \
+            --containers "{
+              \"web\": {
+                \"image\": \"$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG\",
+                \"ports\": {\"80\": \"HTTP\"},
+                \"environment\": {
+                  \"NODE_ENV\": \"production\"
+                }
+              }
+            }" \
+            --public-endpoint "{
+              \"containerName\": \"web\",
+              \"containerPort\": 80,
+              \"healthCheck\": {
+                \"path\": \"/\"
+              }
+            }"
+```
+
+### Phase 5: Base Template Dockerfile
+
+**File:** `base-template/Dockerfile`
+
+```dockerfile
+FROM node:20-alpine AS builder
+
+WORKDIR /app
+
+# Copy package files
+COPY package*.json ./
+
+# Install dependencies
+RUN npm ci
+
+# Copy source
+COPY . .
+
+# Build Next.js
+RUN npm run build
+
+# Production image
+FROM node:20-alpine AS runner
+
+WORKDIR /app
+
+ENV NODE_ENV=production
+
+# Copy built assets
+COPY --from=builder /app/.next/standalone ./
+COPY --from=builder /app/.next/static ./.next/static
+COPY --from=builder /app/public ./public
+COPY --from=builder /app/site-config.json ./
+
+EXPOSE 80
+
+ENV PORT=80
+
+CMD ["node", "server.js"]
+```
+
+---
+
+## Environment Variables Required
+
+Add to `.env`:
+
+```bash
+# GitHub App
+GITHUB_APP_ID=123456
+GITHUB_PRIVATE_KEY="-----BEGIN RSA PRIVATE KEY-----\n...\n-----END RSA PRIVATE KEY-----"
+GITHUB_INSTALLATION_ID=12345678
+GITHUB_ORG=devopser-sites
+GITHUB_TEMPLATE_REPO=base-template
+
+# AWS ECR
+ECR_REGISTRY=123456789012.dkr.ecr.us-east-1.amazonaws.com
+
+# Domain
+DOMAIN=devopser.io
+```
+
+---
+
+## DNS Configuration
+
+### Route53 Setup
+
+1. Create hosted zone for `devopser.io`
+2. Add wildcard CNAME record:
+   - Name: `*.devopser.io`
+   - Type: CNAME
+   - Value: Points to Lightsail container service URL
+
+**Note:** Each Lightsail container service gets its own URL like:
+`container-service-name.abc123.us-east-1.cs.amazonlightsail.com`
+
+For custom subdomains, you have two options:
+
+**Option A: Individual CNAME per site**
+- Create CNAME: `mysite.devopser.io` → `devopser-mysite.abc123.us-east-1.cs.amazonlightsail.com`
+- Requires DNS update for each new site
+
+**Option B: Use a reverse proxy (recommended)**
+- Single wildcard points to a reverse proxy (Nginx/Caddy)
+- Proxy routes `{slug}.devopser.io` to corresponding Lightsail service
+- More complex but better UX
+
+---
+
+## Implementation Checklist
+
+### Prerequisites
+- [ ] Create GitHub Organization (`devopser-sites`)
+- [ ] Create GitHub App with required permissions
+- [ ] Install GitHub App on organization
+- [ ] Store GitHub App credentials in environment
+- [ ] Create ECR repository (`devopser-sites`)
+- [ ] Add IAM policy for Lightsail + ECR to EC2 instance role
+- [ ] Set up Route53 hosted zone for domain
+- [ ] Create base-template repository with Next.js app
+
+### Backend Implementation
+- [ ] Install npm packages: `@octokit/rest`, `@octokit/auth-app`
+- [ ] Create `backend/services/githubService.js`
+- [ ] Create `backend/services/lightsailService.js`
+- [ ] Update `backend/routes/sites.js` with real deployment logic
+- [ ] Add deployment status polling endpoint
+- [ ] Add webhook endpoint for GitHub Actions status updates (optional)
+
+### Base Template Repository
+- [ ] Create Next.js app with dynamic config loading
+- [ ] Create all section components (Hero, Features, etc.)
+- [ ] Add Dockerfile
+- [ ] Add GitHub Actions workflow
+- [ ] Add AWS credentials as repository secrets
+- [ ] Test build and deploy workflow
+
+### Frontend Updates
+- [ ] Add deployment status polling in builder.ejs
+- [ ] Show real-time deployment progress
+- [ ] Display actual live URL when published
+
+---
+
+## Cost Estimates
+
+### Per Customer Site
+
+| Service | Tier | Monthly Cost |
+|---------|------|-------------|
+| Lightsail Container | Nano (0.25 vCPU, 512MB) | $7/month |
+| ECR Storage | ~100MB per image | ~$0.10/month |
+| Route53 Queries | Included in hosted zone | - |
+| **Total per site** | | **~$7.10/month** |
+
+### Platform Costs
+
+| Service | Usage | Monthly Cost |
+|---------|-------|-------------|
+| Route53 Hosted Zone | 1 zone | $0.50/month |
+| GitHub Organization | Free tier | $0 |
+| ECR Repository | Shared | $0 |
+
+---
+
+## Security Considerations
+
+1. **GitHub App vs PAT**: Use GitHub App for better security and granular permissions
+2. **Private Repositories**: All customer repos are private
+3. **IAM Least Privilege**: EC2 role only has permissions for Lightsail and ECR
+4. **Secrets Management**: Use AWS Secrets Manager for sensitive credentials
+5. **Container Security**: Base image from official Node.js, no root user
+
+---
+
+## Future Enhancements
+
+1. **Custom Domains**: Allow users to configure their own domains
+2. **SSL Certificates**: Lightsail provides free SSL, but custom domains need ACM
+3. **Deployment Rollback**: Store previous configs, allow one-click rollback
+4. **Preview Deployments**: Create preview URLs before publishing
+5. **Analytics**: Add site analytics dashboard
+6. **Image Generation**: Integrate Nova Canvas for AI-generated images
