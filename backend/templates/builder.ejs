@@ -328,6 +328,42 @@
       color: white;
     }
 
+    .link-edit-popup .popup-title {
+      margin-bottom: 8px;
+      font-weight: 600;
+      font-size: 13px;
+    }
+
+    .link-edit-popup .form-group {
+      margin-bottom: 8px;
+    }
+
+    .link-edit-popup label {
+      display: block;
+      font-size: 12px;
+      color: #6c757d;
+      margin-bottom: 4px;
+    }
+
+    /* Save indicator toast */
+    .save-indicator {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: #28a745;
+      color: white;
+      padding: 8px 16px;
+      border-radius: 4px;
+      font-size: 14px;
+      z-index: 1000;
+      animation: fadeIn 0.2s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
     .section-features {
       padding: 4rem 2rem;
       background: #fff;
@@ -670,13 +706,13 @@
 
   <!-- Link/Button Edit Popup -->
   <div class="link-edit-popup" id="linkEditPopup">
-    <div style="margin-bottom: 8px; font-weight: 600; font-size: 13px;">Edit Button</div>
-    <div style="margin-bottom: 8px;">
-      <label style="font-size: 12px; color: #6c757d;">Button Text</label>
+    <div class="popup-title">Edit Button</div>
+    <div class="form-group">
+      <label>Button Text</label>
       <input type="text" id="linkEditText" placeholder="Button text">
     </div>
-    <div style="margin-bottom: 8px;">
-      <label style="font-size: 12px; color: #6c757d;">Link URL</label>
+    <div class="form-group">
+      <label>Link URL</label>
       <input type="text" id="linkEditUrl" placeholder="https://...">
     </div>
     <div class="btn-group">
@@ -904,7 +940,6 @@
     var currentEditElement = null;
     var currentLinkElement = null;
     var originalContent = '';
-    var saveTimeout = null;
 
     // Initialize editable elements with event listeners
     function initEditableElements() {
@@ -1066,7 +1101,10 @@
       saveToBackend(sectionId, updates);
     }
 
-    // Save changes to backend (debounced)
+    // Save changes to backend (immediate - no debounce for reliability)
+    var isSaving = false;
+    var pendingSave = null;
+
     function saveToBackend(sectionId, contentUpdates) {
       // Update local config immediately
       var section = siteData.draftConfig.sections.find(s => s.id === sectionId);
@@ -1074,38 +1112,55 @@
         Object.assign(section.content, contentUpdates);
       }
 
-      // Debounce backend save
-      clearTimeout(saveTimeout);
-      saveTimeout = setTimeout(function() {
-        console.log('[Builder] Auto-saving changes:', sectionId, contentUpdates);
+      // If already saving, queue this save
+      if (isSaving) {
+        pendingSave = { sectionId: sectionId, updates: contentUpdates };
+        return;
+      }
 
-        fetch('/api/sites/' + siteId, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          credentials: 'same-origin',
-          body: JSON.stringify({ draftConfig: siteData.draftConfig })
-        })
-        .then(function(res) { return res.json(); })
-        .then(function(data) {
-          if (data.success) {
-            console.log('[Builder] Auto-save successful');
-            // Show brief save indicator
-            showSaveIndicator();
-          } else {
-            console.error('[Builder] Auto-save failed:', data.error);
+      doSave();
+    }
+
+    function doSave() {
+      if (!siteData || !siteData.draftConfig) return;
+
+      isSaving = true;
+      console.log('[Builder] Saving changes to backend...');
+
+      fetch('/api/sites/' + siteId, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'same-origin',
+        body: JSON.stringify({ draftConfig: siteData.draftConfig })
+      })
+      .then(function(res) { return res.json(); })
+      .then(function(data) {
+        isSaving = false;
+        if (data.success) {
+          console.log('[Builder] Save successful');
+          showSaveIndicator();
+
+          // Process any pending save
+          if (pendingSave) {
+            var pending = pendingSave;
+            pendingSave = null;
+            saveToBackend(pending.sectionId, pending.updates);
           }
-        })
-        .catch(function(err) {
-          console.error('[Builder] Auto-save error:', err);
-        });
-      }, 500);
+        } else {
+          console.error('[Builder] Save failed:', data.error);
+        }
+      })
+      .catch(function(err) {
+        isSaving = false;
+        console.error('[Builder] Save error:', err);
+      });
     }
 
     // Show save indicator
     function showSaveIndicator() {
       var indicator = document.createElement('div');
       indicator.textContent = '✓ Saved';
-      indicator.style.cssText = 'position: fixed; bottom: 20px; right: 20px; background: #28a745; color: white; padding: 8px 16px; border-radius: 4px; font-size: 14px; z-index: 1000;';
+      indicator.className = 'save-indicator';
       document.body.appendChild(indicator);
       setTimeout(function() { indicator.remove(); }, 2000);
     }
