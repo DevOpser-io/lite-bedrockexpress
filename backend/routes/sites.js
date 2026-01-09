@@ -47,10 +47,14 @@ router.get('/', ensureAuthenticated, async (req, res) => {
 /**
  * POST /api/sites
  * Create a new site
+ * Accepts either:
+ *   - draftConfig: Pre-generated config (from anonymous preview)
+ *   - initialPrompt/description: Generate config with AI
+ *   - neither: Create with default template
  */
 router.post('/', ensureAuthenticated, async (req, res) => {
   try {
-    const { name, description, initialPrompt } = req.body;
+    const { name, description, initialPrompt, draftConfig: providedConfig } = req.body;
     const siteDescription = description || initialPrompt; // Accept both
 
     if (!name) {
@@ -72,7 +76,13 @@ router.post('/', ensureAuthenticated, async (req, res) => {
 
     // Create initial configuration
     let draftConfig;
-    if (siteDescription) {
+
+    if (providedConfig && providedConfig.sections && providedConfig.sections.length > 0) {
+      // Use pre-generated config (from anonymous preview)
+      draftConfig = providedConfig;
+      draftConfig.siteName = name;
+      console.log(`[Sites] Using pre-generated config with ${draftConfig.sections.length} sections`);
+    } else if (siteDescription) {
       // Use AI to generate initial config from description
       const result = await generateSiteFromDescription(siteDescription);
       if (result.newConfig) {
@@ -99,7 +109,7 @@ router.post('/', ensureAuthenticated, async (req, res) => {
     res.status(201).json({
       success: true,
       site: site.toPublicJSON(),
-      message: siteDescription ? 'Site created with AI-generated content!' : 'Site created successfully!'
+      message: providedConfig ? 'Site created from your preview!' : (siteDescription ? 'Site created with AI-generated content!' : 'Site created successfully!')
     });
   } catch (error) {
     console.error('[Sites] Error creating site:', error);

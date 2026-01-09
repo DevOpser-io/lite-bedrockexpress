@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><%= title %> - Admin Panel</title>
     <link href="/static/css/litera-bootstrap.min.css" rel="stylesheet">
-    <link href="/static/css/bootstrap-icons.css" rel="stylesheet">
+    <link href="/static/fontawesome/all.min.css" rel="stylesheet">
     <link href="/admin-panel.css" rel="stylesheet">
     <%- include('../partials/favicon') %>
 </head>
@@ -19,17 +19,17 @@
         <ul class="nav flex-column">
             <li class="nav-item">
                 <a class="nav-link <%= title.includes('Dashboard') ? 'active' : '' %>" href="/admin-panel">
-                    <i class="bi bi-speedometer2"></i> Dashboard
+                    <i class="fa-solid fa-gauge"></i> Dashboard
                 </a>
             </li>
             <li class="nav-item">
                 <a class="nav-link <%= title.includes('User') ? 'active' : '' %>" href="/admin-panel/users">
-                    <i class="bi bi-people"></i> Users
+                    <i class="fa-solid fa-users"></i> Users
                 </a>
             </li>
             <li class="nav-item">
                 <a class="nav-link <%= title.includes('Conversation') ? 'active' : '' %>" href="/admin-panel/conversations">
-                    <i class="bi bi-chat-dots"></i> Conversations
+                    <i class="fa-solid fa-comments"></i> Conversations
                 </a>
             </li>
             <li class="nav-item">
@@ -37,12 +37,12 @@
             </li>
             <li class="nav-item">
                 <a class="nav-link" href="/">
-                    <i class="bi bi-house"></i> Back to App
+                    <i class="fa-solid fa-house"></i> Back to App
                 </a>
             </li>
             <li class="nav-item">
                 <a class="nav-link" href="/admin-access/logout">
-                    <i class="bi bi-box-arrow-right"></i> Logout
+                    <i class="fa-solid fa-right-from-bracket"></i> Logout
                 </a>
             </li>
         </ul>

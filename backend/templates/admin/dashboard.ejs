@@ -5,14 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><%= title %> - Admin Panel</title>
     <link href="/static/css/litera-bootstrap.min.css" rel="stylesheet">
-    <link href="/static/css/bootstrap-icons.css" rel="stylesheet">
+    <link href="/static/fontawesome/all.min.css" rel="stylesheet">
     <link href="/admin-panel.css" rel="stylesheet">
     <%- include('../partials/favicon') %>
 </head>
 <body>
     <!-- Mobile menu toggle -->
     <button class="mobile-menu-toggle" id="mobile-menu-toggle">
-        <i class="bi bi-list"></i>
+        <i class="fa-solid fa-bars"></i>
     </button>
     
     <!-- Mobile overlay -->
@@ -27,17 +27,17 @@
         <ul class="nav flex-column">
             <li class="nav-item">
                 <a class="nav-link active" href="/admin-panel">
-                    <i class="bi bi-speedometer2"></i> Dashboard
+                    <i class="fa-solid fa-gauge"></i> Dashboard
                 </a>
             </li>
             <li class="nav-item">
                 <a class="nav-link" href="/admin-panel/users">
-                    <i class="bi bi-people"></i> Users
+                    <i class="fa-solid fa-users"></i> Users
                 </a>
             </li>
             <li class="nav-item">
                 <a class="nav-link" href="/admin-panel/conversations">
-                    <i class="bi bi-chat-dots"></i> Conversations
+                    <i class="fa-solid fa-comments"></i> Conversations
                 </a>
             </li>
             <li class="nav-item">
@@ -45,12 +45,12 @@
             </li>
             <li class="nav-item">
                 <a class="nav-link" href="/">
-                    <i class="bi bi-house"></i> Back to App
+                    <i class="fa-solid fa-house"></i> Back to App
                 </a>
             </li>
             <li class="nav-item">
                 <a class="nav-link" href="/admin-access/logout">
-                    <i class="bi bi-box-arrow-right"></i> Logout
+                    <i class="fa-solid fa-right-from-bracket"></i> Logout
                 </a>
             </li>
         </ul>
@@ -153,16 +153,16 @@
                                         <td>
                                             <div class="btn-group btn-group-sm">
                                                 <a href="/admin-panel/users/<%= user.id %>" class="btn btn-outline-primary">
-                                                    <i class="bi bi-eye"></i>
+                                                    <i class="fa-solid fa-eye"></i>
                                                 </a>
                                                 <% if (!user.emailVerified) { %>
                                                     <button data-action="toggle-verified" data-user-id="<%= user.id %>" class="btn btn-outline-success" title="Verify Email">
-                                                        <i class="bi bi-check-circle"></i>
+                                                        <i class="fa-solid fa-circle-check"></i>
                                                     </button>
                                                 <% } %>
                                                 <% if (!user.isAdmin && user.id !== user.id) { %>
                                                     <button data-action="toggle-admin" data-user-id="<%= user.id %>" class="btn btn-outline-danger" title="Grant Admin">
-                                                        <i class="bi bi-shield-check"></i>
+                                                        <i class="fa-solid fa-shield-check"></i>
                                                     </button>
                                                 <% } %>
                                             </div>
@@ -174,7 +174,7 @@
                     </div>
                 <% } else { %>
                     <div class="text-center py-4">
-                        <i class="bi bi-people text-muted dashboard-icon"></i>
+                        <i class="fa-solid fa-users text-muted dashboard-icon"></i>
                         <p class="text-muted mt-2">No users found</p>
                     </div>
                 <% } %>
@@ -195,21 +195,21 @@
                     <div class="col-md-4">
                         <div class="d-grid">
                             <a href="/admin-panel/users" class="btn btn-primary">
-                                <i class="bi bi-people"></i> Manage Users
+                                <i class="fa-solid fa-users"></i> Manage Users
                             </a>
                         </div>
                     </div>
                     <div class="col-md-4">
                         <div class="d-grid">
                             <a href="/admin-panel/conversations" class="btn btn-info">
-                                <i class="bi bi-chat-dots"></i> View Conversations
+                                <i class="fa-solid fa-comments"></i> View Conversations
                             </a>
                         </div>
                     </div>
                     <div class="col-md-4">
                         <div class="d-grid">
                             <a href="/" class="btn btn-outline-secondary">
-                                <i class="bi bi-house"></i> Back to App
+                                <i class="fa-solid fa-house"></i> Back to App
                             </a>
                         </div>
                     </div>

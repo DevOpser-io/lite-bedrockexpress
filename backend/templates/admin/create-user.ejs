@@ -5,14 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><%= title %> - Admin Panel</title>
     <link href="/static/css/litera-bootstrap.min.css" rel="stylesheet">
-    <link href="/static/css/bootstrap-icons.css" rel="stylesheet">
+    <link href="/static/fontawesome/all.min.css" rel="stylesheet">
     <link href="/admin-panel.css" rel="stylesheet">
     <%- include('../partials/favicon') %>
 </head>
 <body>
     <!-- Mobile menu toggle -->
     <button class="mobile-menu-toggle" id="mobile-menu-toggle">
-        <i class="bi bi-list"></i>
+        <i class="fa-solid fa-bars"></i>
     </button>
     
     <!-- Mobile overlay -->
@@ -27,17 +27,17 @@
         <ul class="nav flex-column">
             <li class="nav-item">
                 <a class="nav-link" href="/admin-panel">
-                    <i class="bi bi-speedometer2"></i> Dashboard
+                    <i class="fa-solid fa-gauge"></i> Dashboard
                 </a>
             </li>
             <li class="nav-item">
                 <a class="nav-link active" href="/admin-panel/users">
-                    <i class="bi bi-people"></i> Users
+                    <i class="fa-solid fa-users"></i> Users
                 </a>
             </li>
             <li class="nav-item">
                 <a class="nav-link" href="/admin-panel/conversations">
-                    <i class="bi bi-chat-dots"></i> Conversations
+                    <i class="fa-solid fa-comments"></i> Conversations
                 </a>
             </li>
             <li class="nav-item">
@@ -45,12 +45,12 @@
             </li>
             <li class="nav-item">
                 <a class="nav-link" href="/">
-                    <i class="bi bi-house"></i> Back to App
+                    <i class="fa-solid fa-house"></i> Back to App
                 </a>
             </li>
             <li class="nav-item">
                 <a class="nav-link" href="/admin-access/logout">
-                    <i class="bi bi-box-arrow-right"></i> Logout
+                    <i class="fa-solid fa-right-from-bracket"></i> Logout
                 </a>
             </li>
         </ul>
@@ -71,7 +71,7 @@
             <div class="d-flex justify-content-between align-items-center">
                 <div class="d-flex align-items-start">
                     <a href="/admin-panel/users" class="btn btn-outline-secondary btn-sm me-3 d-md-none align-self-start" title="Back to Users">
-                        <i class="bi bi-arrow-left"></i>
+                        <i class="fa-solid fa-arrow-left"></i>
                     </a>
                     <div>
                         <h1 class="h3 mb-0"><%= title %></h1>
@@ -101,13 +101,13 @@
                         <!-- Flash Messages -->
                         <% if (typeof error !== 'undefined' && error && error.length > 0) { %>
                             <div class="alert alert-danger" role="alert">
-                                <i class="bi bi-exclamation-triangle"></i> <%= Array.isArray(error) ? error[0] : error %>
+                                <i class="fa-solid fa-triangle-exclamation"></i> <%= Array.isArray(error) ? error[0] : error %>
                             </div>
                         <% } %>
                         
                         <% if (typeof message !== 'undefined' && message && message.length > 0) { %>
                             <div class="alert alert-success" role="alert">
-                                <i class="bi bi-check-circle"></i> <%= Array.isArray(message) ? message[0] : message %>
+                                <i class="fa-solid fa-circle-check"></i> <%= Array.isArray(message) ? message[0] : message %>
                             </div>
                         <% } %>
 
@@ -168,10 +168,10 @@
                             
                             <div class="d-flex justify-content-between">
                                 <a href="/admin-panel/users" class="btn btn-outline-secondary">
-                                    <i class="bi bi-arrow-left"></i> Back to Users
+                                    <i class="fa-solid fa-arrow-left"></i> Back to Users
                                 </a>
                                 <button type="submit" class="btn btn-success">
-                                    <i class="bi bi-plus-circle"></i> Create User
+                                    <i class="fa-solid fa-circle-plus"></i> Create User
                                 </button>
                             </div>
                         </form>

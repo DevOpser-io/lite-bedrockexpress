@@ -9,7 +9,7 @@
 
   <!-- CSS Files -->
   <link rel="stylesheet" href="/static/css/litera-bootstrap.min.css">
-  <link rel="stylesheet" href="/static/css/bootstrap-icons.css">
+  <link rel="stylesheet" href="/static/fontawesome/all.min.css">
   <link rel="stylesheet" href="/static/nav.css">
 
   <!-- Builder-specific styles -->
@@ -942,7 +942,7 @@
             <li class="nav-item dropdown">
               <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                 <span class="status-badge status-<%= site.status %>">
-                  <i class="bi bi-circle-fill status-icon-dot"></i>
+                  <i class="fa-solid fa-circle status-icon-dot"></i>
                   <%= site.status.charAt(0).toUpperCase() + site.status.slice(1) %>
                 </span>
               </a>
@@ -953,7 +953,7 @@
                 <li><h6 class="dropdown-header text-danger">Danger Zone</h6></li>
                 <li>
                   <button class="dropdown-item text-danger" id="delete-site-btn">
-                    <i class="bi bi-trash me-2"></i>Delete Site
+                    <i class="fa-solid fa-trash me-2"></i>Delete Site
                   </button>
                 </li>
               </ul>
@@ -975,7 +975,7 @@
     <!-- Chat Sidebar -->
     <div class="chat-sidebar">
       <div class="chat-header">
-        <h5><i class="bi bi-chat-dots me-2"></i>Build with AI</h5>
+        <h5><i class="fa-solid fa-comments me-2"></i>Build with AI</h5>
         <% if (site) { %>
         <small class="text-muted"><%= site.name %></small>
         <% } %>
@@ -984,12 +984,12 @@
       <div class="chat-messages" id="chat-messages">
         <% if (!site || !site.draftConfig || !site.draftConfig.sections || site.draftConfig.sections.length === 0) { %>
         <div class="chat-message system">
-          <i class="bi bi-lightbulb me-1"></i>
+          <i class="fa-solid fa-lightbulb me-1"></i>
           Describe your website and I'll create it for you! For example: "I want a landing page for a fitness app"
         </div>
         <% } else { %>
         <div class="chat-message system">
-          <i class="bi bi-check-circle me-1"></i>
+          <i class="fa-solid fa-circle-check me-1"></i>
           Your site is ready! Ask me to make changes, like "make the headline more exciting" or "add a pricing section"
         </div>
         <% } %>
@@ -1003,11 +1003,11 @@
         ></textarea>
         <div class="chat-actions">
           <button id="send-btn" class="btn btn-primary flex-grow-1">
-            <i class="bi bi-send me-1"></i> Send
+            <i class="fa-solid fa-paper-plane me-1"></i> Send
           </button>
           <% if (site && site.draftConfig && site.draftConfig.sections && site.draftConfig.sections.length > 0) { %>
           <button id="publish-btn" class="btn btn-success" <%= site.status === 'deploying' ? 'disabled' : '' %>>
-            <i class="bi bi-rocket-takeoff me-1"></i> Publish
+            <i class="fa-solid fa-rocket me-1"></i> Publish
           </button>
           <% } %>
         </div>
@@ -1019,7 +1019,7 @@
     <div class="preview-area">
       <div class="preview-header">
         <div class="preview-url">
-          <i class="bi bi-globe"></i>
+          <i class="fa-solid fa-globe"></i>
           <% if (site) { %>
           <span><%= site.slug %>.devopser.io</span>
           <% } else { %>
@@ -1028,11 +1028,11 @@
         </div>
         <div class="preview-actions">
           <button class="btn btn-outline-secondary btn-sm" id="refresh-preview">
-            <i class="bi bi-arrow-clockwise"></i>
+            <i class="fa-solid fa-rotate"></i>
           </button>
           <% if (site && site.status === 'published') { %>
           <a href="<%= site.publicUrl %>" target="_blank" class="btn btn-outline-primary btn-sm">
-            <i class="bi bi-box-arrow-up-right me-1"></i> View Live
+            <i class="fa-solid fa-arrow-up-right-from-square me-1"></i> View Live
           </a>
           <% } %>
         </div>
@@ -1095,7 +1095,7 @@
                 <div class="features-grid">
                   <% (section.content.items || []).forEach((item, itemIndex) => { %>
                   <div class="feature-item" data-item-index="<%= itemIndex %>">
-                    <div class="feature-icon" data-editable-icon data-field="items.<%= itemIndex %>.icon" data-current-icon="<%= item.icon || 'star' %>"><i class="bi bi-<%= item.icon || 'star' %>"></i></div>
+                    <div class="feature-icon" data-editable-icon data-field="items.<%= itemIndex %>.icon" data-current-icon="<%= item.icon || 'star' %>"><i class="fa-solid fa-<%= item.icon || 'star' %>"></i></div>
                     <h3 data-editable data-field="items.<%= itemIndex %>.title"><%= item.title %></h3>
                     <p data-editable data-field="items.<%= itemIndex %>.description"><%= item.description %></p>
                   </div>
@@ -1153,7 +1153,7 @@
                 <h2 data-editable data-field="title"><%= section.content.title %></h2>
                 <p data-editable data-field="subtitle"><%= section.content.subtitle %></p>
                 <% if (section.content.email) { %>
-                <p><i class="bi bi-envelope me-2"></i><span data-editable data-field="email"><%= section.content.email %></span></p>
+                <p><i class="fa-solid fa-envelope me-2"></i><span data-editable data-field="email"><%= section.content.email %></span></p>
                 <% } %>
               </div>
               <% } else if (section.type === 'footer') { %>
@@ -1165,7 +1165,7 @@
           </div>
           <% } else { %>
           <div class="empty-state">
-            <i class="bi bi-easel"></i>
+            <i class="fa-solid fa-palette"></i>
             <h5>No preview yet</h5>
             <p>Describe your website in the chat to get started!</p>
           </div>
@@ -1229,7 +1229,7 @@
     function addToolsUsedMessage(toolNames) {
       const div = document.createElement('div');
       div.className = 'chat-message tools-used';
-      div.innerHTML = '<i class="bi bi-tools me-1"></i> Used: ' + escapeHtml(toolNames);
+      div.innerHTML = '<i class="fa-solid fa-screwdriver-wrench me-1"></i> Used: ' + escapeHtml(toolNames);
       chatMessages.appendChild(div);
     }
 
@@ -1299,7 +1299,7 @@
 
       isProcessing = false;
       sendBtn.disabled = false;
-      sendBtn.innerHTML = '<i class="bi bi-send me-1"></i> Send';
+      sendBtn.innerHTML = '<i class="fa-solid fa-paper-plane me-1"></i> Send';
     }
 
     // Helper to determine if a hex color is dark (for text contrast)
@@ -1359,7 +1359,7 @@
           (section.content.items || []).forEach(function(item, itemIndex) {
             var iconName = item.icon || 'star';
             html += '<div class="feature-item" data-item-index="' + itemIndex + '">';
-            html += '<div class="feature-icon" data-editable-icon data-field="items.' + itemIndex + '.icon" data-current-icon="' + escapeHtml(iconName) + '"><i class="bi bi-' + escapeHtml(iconName) + '"></i></div>';
+            html += '<div class="feature-icon" data-editable-icon data-field="items.' + itemIndex + '.icon" data-current-icon="' + escapeHtml(iconName) + '"><i class="fa-solid fa-' + escapeHtml(iconName) + '"></i></div>';
             html += '<h3 data-editable data-field="items.' + itemIndex + '.title">' + escapeHtml(item.title || '') + '</h3>';
             html += '<p data-editable data-field="items.' + itemIndex + '.description">' + escapeHtml(item.description || '') + '</p>';
             html += '</div>';
@@ -1418,7 +1418,7 @@
           html += '<h2 data-editable data-field="title">' + escapeHtml(section.content.title || '') + '</h2>';
           html += '<p data-editable data-field="subtitle">' + escapeHtml(section.content.subtitle || '') + '</p>';
           if (section.content.email) {
-            html += '<p><i class="bi bi-envelope me-2"></i><span data-editable data-field="email">' + escapeHtml(section.content.email) + '</span></p>';
+            html += '<p><i class="fa-solid fa-envelope me-2"></i><span data-editable data-field="email">' + escapeHtml(section.content.email) + '</span></p>';
           }
           html += '</div>';
         } else if (section.type === 'footer') {
@@ -1452,7 +1452,7 @@
         // Initialize editable elements
         initEditableElements();
       } else {
-        previewFrame.innerHTML = '<div class="empty-state"><i class="bi bi-easel"></i><h5>No preview yet</h5><p>Describe your website in the chat to get started!</p></div>';
+        previewFrame.innerHTML = '<div class="empty-state"><i class="fa-solid fa-palette"></i><h5>No preview yet</h5><p>Describe your website in the chat to get started!</p></div>';
       }
     }
 
@@ -1913,15 +1913,15 @@
     // Icon picker functionality
     var currentIconElement = null;
     var availableIcons = [
-      'rocket', 'star', 'heart', 'check', 'shield', 'lightning-charge',
-      'globe', 'people', 'clock', 'bar-chart', 'lock', 'cloud',
-      'code-slash', 'phone', 'gear', 'headset', 'book', 'gift',
-      'cpu', 'database', 'envelope', 'eye', 'file-text', 'flag',
-      'folder', 'house', 'image', 'key', 'layers', 'link',
-      'map', 'megaphone', 'moon', 'palette', 'pencil', 'person',
-      'pie-chart', 'pin-map', 'play', 'plus-circle', 'power', 'puzzle',
-      'search', 'send', 'share', 'shop', 'speedometer', 'sun',
-      'terminal', 'trophy', 'truck', 'wifi', 'wrench', 'zoom-in'
+      'rocket', 'star', 'heart', 'check', 'shield', 'bolt',
+      'globe', 'users', 'clock', 'chart-bar', 'lock', 'cloud',
+      'code', 'phone', 'gear', 'headset', 'book', 'gift',
+      'microchip', 'database', 'envelope', 'eye', 'file-lines', 'flag',
+      'folder', 'house', 'image', 'key', 'layer-group', 'link',
+      'map', 'bullhorn', 'moon', 'palette', 'pencil', 'user',
+      'chart-pie', 'location-dot', 'play', 'circle-plus', 'power-off', 'puzzle-piece',
+      'magnifying-glass', 'paper-plane', 'share', 'store', 'gauge', 'sun',
+      'terminal', 'trophy', 'truck', 'wifi', 'wrench', 'magnifying-glass-plus'
     ];
 
     // Initialize icon picker grid
@@ -1934,7 +1934,7 @@
         var item = document.createElement('div');
         item.className = 'icon-picker-item';
         item.setAttribute('data-icon', icon);
-        item.innerHTML = '<i class="bi bi-' + icon + '"></i>';
+        item.innerHTML = '<i class="fa-solid fa-' + icon + '"></i>';
         item.onclick = function() { selectIcon(icon); };
         grid.appendChild(item);
       });
@@ -1972,7 +1972,7 @@
       // Update the icon element
       var iconEl = currentIconElement.querySelector('i');
       if (iconEl) {
-        iconEl.className = 'bi bi-' + iconName;
+        iconEl.className = 'fa-solid fa-' + iconName;
       }
       currentIconElement.setAttribute('data-current-icon', iconName);
 
@@ -2026,7 +2026,7 @@
         if (!section.querySelector('.section-drag-handle')) {
           var handle = document.createElement('div');
           handle.className = 'section-drag-handle';
-          handle.innerHTML = '<i class="bi bi-grip-vertical"></i>';
+          handle.innerHTML = '<i class="fa-solid fa-grip-vertical"></i>';
           handle.setAttribute('draggable', 'true');
           handle.setAttribute('title', 'Drag to reorder');
           section.appendChild(handle);
@@ -2313,14 +2313,14 @@
         // Don't auto-remove while saving
         indicator.style.animation = 'slideIn 0.3s ease';
       } else if (state === 'success') {
-        indicator.innerHTML = '<i class="bi bi-check-circle"></i> Saved';
+        indicator.innerHTML = '<i class="fa-solid fa-circle-check"></i> Saved';
         setTimeout(function() {
           if (indicator.parentNode) indicator.remove();
           currentSaveIndicator = null;
         }, 2000);
       } else if (state === 'error') {
         indicator.classList.add('error');
-        indicator.innerHTML = '<i class="bi bi-x-circle"></i> ' + (message || 'Error');
+        indicator.innerHTML = '<i class="fa-solid fa-circle-xmark"></i> ' + (message || 'Error');
         setTimeout(function() {
           if (indicator.parentNode) indicator.remove();
           currentSaveIndicator = null;
@@ -2369,13 +2369,13 @@
         } else {
           addMessage('system', 'Error: ' + (data.error || 'Failed to publish'));
           publishBtn.disabled = false;
-          publishBtn.innerHTML = '<i class="bi bi-rocket-takeoff me-1"></i> Publish';
+          publishBtn.innerHTML = '<i class="fa-solid fa-rocket me-1"></i> Publish';
         }
       } catch (error) {
         console.error('Publish error:', error);
         addMessage('system', 'Error: Failed to publish. Please try again.');
         publishBtn.disabled = false;
-        publishBtn.innerHTML = '<i class="bi bi-rocket-takeoff me-1"></i> Publish';
+        publishBtn.innerHTML = '<i class="fa-solid fa-rocket me-1"></i> Publish';
       }
     }
 
@@ -2436,13 +2436,13 @@
           } else {
             alert('Error: ' + (data.error || 'Failed to delete site'));
             deleteSiteBtn.disabled = false;
-            deleteSiteBtn.innerHTML = '<i class="bi bi-trash me-1"></i> Delete Site';
+            deleteSiteBtn.innerHTML = '<i class="fa-solid fa-trash me-1"></i> Delete Site';
           }
         } catch (error) {
           console.error('Delete error:', error);
           alert('Error: Failed to delete site. Please try again.');
           deleteSiteBtn.disabled = false;
-          deleteSiteBtn.innerHTML = '<i class="bi bi-trash me-1"></i> Delete Site';
+          deleteSiteBtn.innerHTML = '<i class="fa-solid fa-trash me-1"></i> Delete Site';
         }
       });
     }

@@ -5,14 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><%= title %> - Admin Panel</title>
     <link href="/static/css/litera-bootstrap.min.css" rel="stylesheet">
-    <link href="/static/css/bootstrap-icons.css" rel="stylesheet">
+    <link href="/static/fontawesome/all.min.css" rel="stylesheet">
     <link href="/admin-panel.css" rel="stylesheet">
     <%- include('../partials/favicon') %>
 </head>
 <body>
     <!-- Mobile menu toggle -->
     <button class="mobile-menu-toggle" id="mobile-menu-toggle">
-        <i class="bi bi-list"></i>
+        <i class="fa-solid fa-bars"></i>
     </button>
     
     <!-- Mobile overlay -->
@@ -27,17 +27,17 @@
         <ul class="nav flex-column">
             <li class="nav-item">
                 <a class="nav-link" href="/admin-panel">
-                    <i class="bi bi-speedometer2"></i> Dashboard
+                    <i class="fa-solid fa-gauge"></i> Dashboard
                 </a>
             </li>
             <li class="nav-item">
                 <a class="nav-link active" href="/admin-panel/users">
-                    <i class="bi bi-people"></i> Users
+                    <i class="fa-solid fa-users"></i> Users
                 </a>
             </li>
             <li class="nav-item">
                 <a class="nav-link" href="/admin-panel/conversations">
-                    <i class="bi bi-chat-dots"></i> Conversations
+                    <i class="fa-solid fa-comments"></i> Conversations
                 </a>
             </li>
             <li class="nav-item">
@@ -45,12 +45,12 @@
             </li>
             <li class="nav-item">
                 <a class="nav-link" href="/">
-                    <i class="bi bi-house"></i> Back to App
+                    <i class="fa-solid fa-house"></i> Back to App
                 </a>
             </li>
             <li class="nav-item">
                 <a class="nav-link" href="/admin-access/logout">
-                    <i class="bi bi-box-arrow-right"></i> Logout
+                    <i class="fa-solid fa-right-from-bracket"></i> Logout
                 </a>
             </li>
         </ul>
@@ -71,7 +71,7 @@
             <div class="d-flex justify-content-between align-items-center">
                 <div class="d-flex align-items-center">
                     <a href="/admin-panel" class="btn btn-outline-secondary btn-sm me-3 d-md-none" title="Back to Dashboard">
-                        <i class="bi bi-arrow-left"></i>
+                        <i class="fa-solid fa-arrow-left"></i>
                     </a>
                     <h1 class="h3 mb-0"><%= title %></h1>
                 </div>
@@ -87,7 +87,7 @@
         <h5 class="mb-0">All Users</h5>
         <div class="d-flex align-items-center gap-2">
             <a href="/admin-panel/users/create" class="btn btn-success btn-sm">
-                <i class="bi bi-plus-circle"></i> Add New User
+                <i class="fa-solid fa-circle-plus"></i> Add New User
             </a>
             <span class="badge bg-primary"><%= users.length %> users on this page</span>
         </div>
@@ -140,39 +140,39 @@
                                 <td class="d-none d-md-table-cell">
                                     <% if (user.mfaEnabled) { %>
                                         <span class="badge bg-success">
-                                            <i class="bi bi-shield-check"></i> Enabled
+                                            <i class="fa-solid fa-shield-check"></i> Enabled
                                         </span>
                                     <% } else { %>
                                         <span class="badge bg-danger">
-                                            <i class="bi bi-shield-x"></i> Disabled
+                                            <i class="fa-solid fa-shield-xmark"></i> Disabled
                                         </span>
                                     <% } %>
                                 </td>
                                 <td>
                                     <div class="btn-group btn-group-sm">
                                         <a href="/admin-panel/users/<%= user.id %>" class="btn btn-outline-primary" title="View Details">
-                                            <i class="bi bi-eye"></i>
+                                            <i class="fa-solid fa-eye"></i>
                                         </a>
                                         <% if (!user.emailVerified) { %>
                                             <button data-action="toggle-verified" data-user-id="<%= user.id %>" class="btn btn-outline-success" title="Verify Email">
-                                                <i class="bi bi-check-circle"></i>
+                                                <i class="fa-solid fa-circle-check"></i>
                                             </button>
                                         <% } else { %>
                                             <button data-action="toggle-verified" data-user-id="<%= user.id %>" class="btn btn-outline-warning" title="Unverify Email">
-                                                <i class="bi bi-x-circle"></i>
+                                                <i class="fa-solid fa-circle-xmark"></i>
                                             </button>
                                         <% } %>
                                         <% if (!user.isAdmin) { %>
                                             <button data-action="toggle-admin" data-user-id="<%= user.id %>" class="btn btn-outline-danger" title="Grant Admin">
-                                                <i class="bi bi-shield-plus"></i>
+                                                <i class="fa-solid fa-shield-plus"></i>
                                             </button>
                                         <% } else { %>
                                             <button data-action="toggle-admin" data-user-id="<%= user.id %>" class="btn btn-outline-secondary" title="Remove Admin">
-                                                <i class="bi bi-shield-minus"></i>
+                                                <i class="fa-solid fa-shield-minus"></i>
                                             </button>
                                         <% } %>
                                         <button data-action="delete-user" data-user-id="<%= user.id %>" class="btn btn-outline-danger" title="Delete User">
-                                            <i class="bi bi-trash"></i>
+                                            <i class="fa-solid fa-trash"></i>
                                         </button>
                                     </div>
                                 </td>
@@ -209,7 +209,7 @@
 
         <% } else { %>
             <div class="text-center py-5">
-                <i class="bi bi-people text-muted empty-state-icon"></i>
+                <i class="fa-solid fa-users text-muted empty-state-icon"></i>
                 <h4 class="text-muted mt-3">No Users Found</h4>
                 <p class="text-muted">There are no users in the system yet.</p>
             </div>

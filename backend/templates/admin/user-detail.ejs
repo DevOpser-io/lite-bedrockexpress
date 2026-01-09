@@ -5,14 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><%= title %> - Admin Panel</title>
     <link href="/static/css/litera-bootstrap.min.css" rel="stylesheet">
-    <link href="/static/css/bootstrap-icons.css" rel="stylesheet">
+    <link href="/static/fontawesome/all.min.css" rel="stylesheet">
     <link href="/admin-panel.css" rel="stylesheet">
     <%- include('../partials/favicon') %>
 </head>
 <body>
     <!-- Mobile menu toggle -->
     <button class="mobile-menu-toggle" id="mobile-menu-toggle">
-        <i class="bi bi-list"></i>
+        <i class="fa-solid fa-bars"></i>
     </button>
     
     <!-- Mobile overlay -->
@@ -27,17 +27,17 @@
         <ul class="nav flex-column">
             <li class="nav-item">
                 <a class="nav-link" href="/admin-panel">
-                    <i class="bi bi-speedometer2"></i> Dashboard
+                    <i class="fa-solid fa-gauge"></i> Dashboard
                 </a>
             </li>
             <li class="nav-item">
                 <a class="nav-link active" href="/admin-panel/users">
-                    <i class="bi bi-people"></i> Users
+                    <i class="fa-solid fa-users"></i> Users
                 </a>
             </li>
             <li class="nav-item">
                 <a class="nav-link" href="/admin-panel/conversations">
-                    <i class="bi bi-chat-dots"></i> Conversations
+                    <i class="fa-solid fa-comments"></i> Conversations
                 </a>
             </li>
             <li class="nav-item">
@@ -45,12 +45,12 @@
             </li>
             <li class="nav-item">
                 <a class="nav-link" href="/">
-                    <i class="bi bi-house"></i> Back to App
+                    <i class="fa-solid fa-house"></i> Back to App
                 </a>
             </li>
             <li class="nav-item">
                 <a class="nav-link" href="/admin-access/logout">
-                    <i class="bi bi-box-arrow-right"></i> Logout
+                    <i class="fa-solid fa-right-from-bracket"></i> Logout
                 </a>
             </li>
         </ul>
@@ -71,7 +71,7 @@
             <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center">
                 <div class="d-flex align-items-center mb-2 mb-md-0">
                     <a href="/admin-panel/users" class="btn btn-outline-secondary btn-sm me-3 d-md-none" title="Back to Users">
-                        <i class="bi bi-arrow-left"></i>
+                        <i class="fa-solid fa-arrow-left"></i>
                     </a>
                     <div>
                         <h1 class="h3 mb-0"><%= title %></h1>
@@ -140,11 +140,11 @@
                         <p>
                             <% if (viewedUser.mfaEnabled) { %>
                                 <span class="badge bg-success">
-                                    <i class="bi bi-shield-check"></i> Enabled
+                                    <i class="fa-solid fa-shield-check"></i> Enabled
                                 </span>
                             <% } else { %>
                                 <span class="badge bg-danger">
-                                    <i class="bi bi-shield-x"></i> Disabled
+                                    <i class="fa-solid fa-shield-xmark"></i> Disabled
                                 </span>
                             <% } %>
                         </p>
@@ -163,32 +163,32 @@
                 <div class="d-grid gap-2">
                     <% if (!viewedUser.emailVerified) { %>
                         <button data-action="toggle-verified" data-user-id="<%= viewedUser.id %>" class="btn btn-success">
-                            <i class="bi bi-check-circle"></i> Verify Email
+                            <i class="fa-solid fa-circle-check"></i> Verify Email
                         </button>
                     <% } else { %>
                         <button data-action="toggle-verified" data-user-id="<%= viewedUser.id %>" class="btn btn-warning">
-                            <i class="bi bi-x-circle"></i> Unverify Email
+                            <i class="fa-solid fa-circle-xmark"></i> Unverify Email
                         </button>
                     <% } %>
                     
                     <% if (viewedUser.id !== user.id) { %>
                         <% if (!viewedUser.isAdmin) { %>
                             <button data-action="toggle-admin" data-user-id="<%= viewedUser.id %>" class="btn btn-danger">
-                                <i class="bi bi-shield-plus"></i> Grant Admin Access
+                                <i class="fa-solid fa-shield-plus"></i> Grant Admin Access
                             </button>
                         <% } else { %>
                             <button data-action="toggle-admin" data-user-id="<%= viewedUser.id %>" class="btn btn-outline-danger">
-                                <i class="bi bi-shield-minus"></i> Remove Admin Access
+                                <i class="fa-solid fa-shield-minus"></i> Remove Admin Access
                             </button>
                         <% } %>
                     <% } else { %>
                         <div class="alert alert-info">
-                            <small><i class="bi bi-info-circle"></i> You cannot modify your own admin status.</small>
+                            <small><i class="fa-solid fa-circle-info"></i> You cannot modify your own admin status.</small>
                         </div>
                     <% } %>
                     
                     <a href="/admin-panel/users" class="btn btn-outline-secondary">
-                        <i class="bi bi-arrow-left"></i> Back to Users
+                        <i class="fa-solid fa-arrow-left"></i> Back to Users
                     </a>
                 </div>
             </div>
@@ -252,7 +252,7 @@
                     </div>
                 <% } else { %>
                     <div class="text-center py-4">
-                        <i class="bi bi-chat-dots text-muted dashboard-icon"></i>
+                        <i class="fa-solid fa-comments text-muted dashboard-icon"></i>
                         <p class="text-muted mt-2">No conversations found for this user</p>
                     </div>
                 <% } %>

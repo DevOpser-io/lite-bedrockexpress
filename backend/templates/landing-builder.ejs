@@ -6,7 +6,7 @@
   <title>DevOpser - Build Your Website with AI</title>
   <%- include('./partials/favicon') %>
   <link rel="stylesheet" href="/static/chat-custom.css">
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+  <link rel="stylesheet" href="/static/fontawesome/all.min.css">
   <script src="/marked.min.js"></script>
   <script src="/purify.min.js"></script>
   <style nonce="<%= typeof cspNonce !== 'undefined' ? cspNonce : '' %>">
@@ -366,14 +366,18 @@
       display: none;
       background: #fff;
       overflow-y: auto;
+      position: relative;
     }
 
     .preview-content-container.active {
-      display: block;
+      display: flex;
+      flex-direction: column;
     }
 
-    .preview-content {
-      min-height: 100%;
+    .preview-inner {
+      flex: 1;
+      min-height: 0;
+      overflow-y: auto;
     }
 
     /* Site Preview Styles */
@@ -664,6 +668,109 @@
     .section-footer p {
       margin: 0;
       opacity: 0.8;
+    }
+
+    /* Preview Mode Indicator */
+    .preview-mode-banner {
+      display: none;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 8px 16px;
+      text-align: center;
+      font-size: 0.875rem;
+      font-weight: 500;
+    }
+
+    .preview-mode-banner.active {
+      display: block;
+    }
+
+    .preview-mode-banner i {
+      margin-right: 6px;
+    }
+
+    /* Floating Save Button */
+    .floating-save-container {
+      display: none;
+      position: absolute;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 100;
+    }
+
+    .floating-save-container.active {
+      display: block;
+      animation: slideUp 0.4s ease-out;
+    }
+
+    @keyframes slideUp {
+      from {
+        opacity: 0;
+        transform: translateX(-50%) translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+      }
+    }
+
+    .floating-save-btn {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 14px 28px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      border-radius: 50px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      box-shadow: 0 4px 20px rgba(102, 126, 234, 0.4);
+      transition: all 0.2s;
+    }
+
+    .floating-save-btn:hover {
+      transform: scale(1.05);
+      box-shadow: 0 6px 25px rgba(102, 126, 234, 0.5);
+    }
+
+    .floating-save-btn i {
+      font-size: 1.1rem;
+    }
+
+    /* Preview mode click indicator */
+    .preview-inner.preview-mode {
+      cursor: pointer;
+    }
+
+    /* Edit tooltip on hover for preview mode */
+    .preview-inner.preview-mode .site-preview {
+      position: relative;
+    }
+
+    .preview-inner.preview-mode .site-preview::before {
+      content: 'Click anywhere to edit - Sign up required';
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: rgba(0, 0, 0, 0.85);
+      color: white;
+      padding: 14px 24px;
+      border-radius: 10px;
+      font-size: 1rem;
+      font-weight: 500;
+      opacity: 0;
+      transition: opacity 0.3s;
+      pointer-events: none;
+      white-space: nowrap;
+      z-index: 100;
+    }
+
+    .preview-inner.preview-mode:hover .site-preview::before {
+      opacity: 1;
     }
 
     /* Auth Modal */
@@ -1295,7 +1402,16 @@
       </div>
 
       <div class="preview-content-container" id="previewContentContainer">
-        <div class="preview-content" id="previewContent"></div>
+        <div class="preview-mode-banner" id="previewModeBanner">
+          <i class="fa-solid fa-eye"></i> Preview Mode - Sign up to save and customize
+        </div>
+        <div class="preview-inner" id="previewContent"></div>
+        <div class="floating-save-container" id="floatingSaveContainer">
+          <button class="floating-save-btn" id="floatingSaveBtn">
+            <i class="fa-solid fa-cloud-arrow-up"></i>
+            Save Your Site
+          </button>
+        </div>
       </div>
     </div>
   </div>
@@ -1362,6 +1478,9 @@
       const previewPlaceholder = document.getElementById('previewPlaceholder');
       const previewContentContainer = document.getElementById('previewContentContainer');
       const previewContent = document.getElementById('previewContent');
+      const previewModeBanner = document.getElementById('previewModeBanner');
+      const floatingSaveContainer = document.getElementById('floatingSaveContainer');
+      const floatingSaveBtn = document.getElementById('floatingSaveBtn');
       const previewUrl = document.getElementById('previewUrl');
       const previewUrlText = document.getElementById('previewUrlText');
       const mySitesLink = document.getElementById('mySitesLink');
@@ -1460,6 +1579,18 @@
             }
           }
         });
+
+        // Preview content click - clicking on preview triggers signup modal (only in preview mode)
+        previewContent.addEventListener('click', () => {
+          if (!isAuthenticated && previewContent.classList.contains('preview-mode')) {
+            showAuthModal();
+          }
+        });
+
+        // Floating save button - triggers signup modal
+        floatingSaveBtn.addEventListener('click', () => {
+          showAuthModal();
+        });
       }
 
       function updateUIForAuthenticatedUser() {
@@ -1523,6 +1654,7 @@
         chatMessages.scrollTop = chatMessages.scrollHeight;
       }
 
+      // For authenticated users: create site and redirect to builder
       async function createSiteAndGenerate(prompt) {
         try {
           // Create a new site with AI-generated config
@@ -1542,51 +1674,10 @@
 
           const response = await createResponse.json();
           const siteData = response.site;
-          currentSiteId = siteData.id;
-          console.log('[Landing] Site created:', siteData.id, 'sections:', siteData.draftConfig?.sections?.length || 0);
+          console.log('[Landing] Site created:', siteData.id, 'redirecting to builder...');
 
-          // Use the config from site creation - it already has AI-generated content
-          let configToRender = siteData.draftConfig;
-
-          // Chat to allow AI to refine or respond (optional enhancement)
-          try {
-            const chatResponse = await fetch(`/api/sites/${siteData.id}/chat`, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ message: prompt })
-            });
-
-            if (chatResponse.ok) {
-              const result = await chatResponse.json();
-              console.log('[Landing] Chat response, sections:', result.siteConfig?.sections?.length || 0);
-
-              // Use chat config if it has content, otherwise fallback to site creation config
-              if (result.siteConfig && result.siteConfig.sections && result.siteConfig.sections.length > 0) {
-                configToRender = result.siteConfig;
-              }
-
-              if (result.message) {
-                addMessage(result.message, 'assistant');
-              }
-            }
-          } catch (chatError) {
-            console.warn('[Landing] Chat enhancement failed, using initial config:', chatError);
-            // Continue with configToRender from site creation
-          }
-
-          generatingIndicator.classList.remove('active');
-          sendButton.disabled = false;
-
-          // Render preview if we have config with sections
-          if (configToRender && configToRender.sections && configToRender.sections.length > 0) {
-            currentSiteConfig = configToRender;
-            renderPreview(configToRender);
-            updatePreviewUrl(siteData.slug);
-            publishBtn.classList.remove('btn-hidden');
-          } else {
-            console.warn('[Landing] No sections in config, showing placeholder');
-            addMessage('I created a basic site structure. Tell me more about what you want to build!', 'assistant');
-          }
+          // Redirect to builder immediately - no need to render preview here
+          window.location.href = `/sites/${siteData.id}/builder`;
 
         } catch (error) {
           console.error('[Landing] Error creating site:', error);
@@ -1690,7 +1781,7 @@
               (section.content.items || []).forEach(function(item) {
                 const iconName = item.icon || 'star';
                 html += '<div class="feature-item">';
-                html += '<div class="feature-icon"><i class="bi bi-' + escapeHtml(iconName) + '"></i></div>';
+                html += '<div class="feature-icon"><i class="fa-solid fa-' + escapeHtml(iconName) + '"></i></div>';
                 html += '<h3>' + escapeHtml(item.title || '') + '</h3>';
                 html += '<p>' + escapeHtml(item.description || '') + '</p>';
                 html += '</div>';
@@ -1753,7 +1844,7 @@
               html += '<h2>' + escapeHtml(section.content.title || '') + '</h2>';
               html += '<p>' + escapeHtml(section.content.subtitle || '') + '</p>';
               if (section.content.email) {
-                html += '<p><i class="bi bi-envelope"></i> ' + escapeHtml(section.content.email) + '</p>';
+                html += '<p><i class="fa-solid fa-envelope"></i> ' + escapeHtml(section.content.email) + '</p>';
               }
               html += '</div>';
 
@@ -1793,6 +1884,18 @@
 
           previewUrl.classList.add('live');
           console.log('[Preview] Preview rendered successfully');
+
+          // Show preview mode elements for unauthenticated users
+          if (!isAuthenticated) {
+            previewModeBanner.classList.add('active');
+            previewContent.classList.add('preview-mode');
+            floatingSaveContainer.classList.add('active');
+          } else {
+            // Hide preview mode elements for authenticated users
+            previewModeBanner.classList.remove('active');
+            previewContent.classList.remove('preview-mode');
+            floatingSaveContainer.classList.remove('active');
+          }
 
         } catch (error) {
           console.error('[Preview] Error rendering preview:', error);
@@ -1921,14 +2024,19 @@
           if (data.success) {
             isAuthenticated = true;
             currentUser = { email: authEmail };
-            authModal.classList.remove('active');
-            updateUIForAuthenticatedUser();
+            localStorage.removeItem('pendingPrompt');
 
-            // Process the pending prompt
-            if (pendingPrompt) {
-              localStorage.removeItem('pendingPrompt');
-              processPrompt(pendingPrompt);
-              pendingPrompt = null;
+            // If we have a preview config, create a site and redirect to builder
+            if (currentSiteConfig) {
+              authVerifyCodeBtn.textContent = 'Creating your site...';
+              await createSiteAndRedirect(currentSiteConfig);
+            } else if (pendingPrompt) {
+              // No preview yet, create site with prompt and redirect
+              authVerifyCodeBtn.textContent = 'Creating your site...';
+              await createSiteFromPromptAndRedirect(pendingPrompt);
+            } else {
+              // No config or prompt, just go to sites list
+              window.location.href = '/sites';
             }
           } else if (data.requiresMfa) {
             // Handle MFA - redirect to MFA page
@@ -1944,6 +2052,62 @@
 
         authVerifyCodeBtn.disabled = false;
         authVerifyCodeBtn.textContent = 'Verify & Create Website';
+      }
+
+      // Create site with existing config and redirect to builder
+      async function createSiteAndRedirect(config) {
+        try {
+          const response = await fetch('/api/sites', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              name: config.siteName || 'My Website',
+              draftConfig: config
+            })
+          });
+
+          if (!response.ok) {
+            throw new Error('Failed to create site');
+          }
+
+          const data = await response.json();
+          const siteId = data.site.id;
+
+          // Redirect to builder
+          window.location.href = `/sites/${siteId}/builder`;
+        } catch (error) {
+          console.error('[Landing] Error creating site:', error);
+          authCodeError.textContent = 'Failed to create site. Please try again.';
+          authCodeError.classList.add('show');
+        }
+      }
+
+      // Create site from prompt and redirect to builder
+      async function createSiteFromPromptAndRedirect(prompt) {
+        try {
+          const response = await fetch('/api/sites', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              name: 'My Website',
+              initialPrompt: prompt
+            })
+          });
+
+          if (!response.ok) {
+            throw new Error('Failed to create site');
+          }
+
+          const data = await response.json();
+          const siteId = data.site.id;
+
+          // Redirect to builder
+          window.location.href = `/sites/${siteId}/builder`;
+        } catch (error) {
+          console.error('[Landing] Error creating site:', error);
+          authCodeError.textContent = 'Failed to create site. Please try again.';
+          authCodeError.classList.add('show');
+        }
       }
 
       // Initialize on load
