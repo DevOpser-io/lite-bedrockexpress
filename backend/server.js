@@ -28,6 +28,7 @@ const adminRoutes = require('./routes/admin');
 const adminPanelRoutes = require('./routes/admin-panel');
 const sitesRoutes = require('./routes/sites');
 const previewRoutes = require('./routes/preview');
+const imagesRoutes = require('./routes/images');
 
 const listEndpoints = require('express-list-endpoints');
 
@@ -109,14 +110,13 @@ app.use(helmet({
         "'self'",
         (req, res) => `'nonce-${res.locals.cspNonce}'`
       ],
-      // Allow nonce-based inline styles for admin panel
+      // Allow inline styles for dynamic preview in builder
       styleSrc: [
         "'self'",
-        (req, res) => `'nonce-${res.locals.cspNonce}'`,
-        "'sha256-KmuybpeIODTiqckdvTvlqNTvo/FCXZzUUlV4T9gJkoo='", // For bundle.js styles
-        "'sha256-k0WLd3ulXPrpY7QZFCS+T0vX8ftqew4kV7Dl98xSR+o='"  // For bundle.js styles
+        "'unsafe-inline'", // Required for builder preview dynamic styling
+        (req, res) => `'nonce-${res.locals.cspNonce}'`
       ],
-      imgSrc: ["'self'", 'data:'],
+      imgSrc: ["'self'", 'data:', 'https://placehold.co'],
       connectSrc: ["'self'", 'https://*.amazonaws.com'], // For AWS services
       fontSrc: ["'self'"],
       objectSrc: ["'none'"],
@@ -503,6 +503,9 @@ app.use((err, req, res, next) => {
 
     // Sites API Routes - for DevOpser Lite website builder
     app.use('/api/sites', sitesRoutes);
+
+    // Images API Routes - for site image uploads (nested under sites)
+    app.use('/api/sites', imagesRoutes);
 
     // Preview Routes - anonymous preview generation (no auth required)
     app.use('/api/preview', previewRoutes);

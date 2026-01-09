@@ -227,6 +227,220 @@ const SECTION_SCHEMAS = {
         }
       }
     }
+  },
+
+  // New section types for multi-page support
+
+  team: {
+    type: 'team',
+    displayName: 'Team Members',
+    description: 'Display team members with photos and bios',
+    defaultContent: {
+      title: 'Meet Our Team',
+      subtitle: 'The people behind our success',
+      members: [
+        {
+          name: 'John Smith',
+          role: 'CEO & Founder',
+          bio: 'John brings 20 years of industry experience to lead our team.',
+          photo: 'https://placehold.co/200x200/3B82F6/white?text=JS',
+          email: null,
+          linkedin: null
+        },
+        {
+          name: 'Jane Doe',
+          role: 'Head of Operations',
+          bio: 'Jane ensures everything runs smoothly across all departments.',
+          photo: 'https://placehold.co/200x200/10B981/white?text=JD',
+          email: null,
+          linkedin: null
+        }
+      ]
+    },
+    schema: {
+      title: { type: 'string', maxLength: 100, required: true },
+      subtitle: { type: 'string', maxLength: 200, required: false },
+      members: {
+        type: 'array',
+        minItems: 1,
+        maxItems: 12,
+        itemSchema: {
+          name: { type: 'string', maxLength: 100, required: true },
+          role: { type: 'string', maxLength: 100, required: true },
+          bio: { type: 'string', maxLength: 500, required: false },
+          photo: { type: 'url', required: false },
+          email: { type: 'email', required: false },
+          linkedin: { type: 'url', required: false }
+        }
+      }
+    }
+  },
+
+  services: {
+    type: 'services',
+    displayName: 'Services',
+    description: 'Display services with descriptions and pricing',
+    defaultContent: {
+      title: 'Our Services',
+      subtitle: 'Professional solutions tailored to your needs',
+      items: [
+        {
+          icon: 'wrench',
+          title: 'Consultation',
+          description: 'Expert advice to help you make informed decisions.',
+          price: null,
+          ctaText: 'Learn More',
+          ctaLink: '#contact'
+        },
+        {
+          icon: 'gear',
+          title: 'Implementation',
+          description: 'Full service implementation from start to finish.',
+          price: null,
+          ctaText: 'Get Quote',
+          ctaLink: '#contact'
+        },
+        {
+          icon: 'headset',
+          title: 'Support',
+          description: 'Ongoing support to keep your business running smoothly.',
+          price: null,
+          ctaText: 'Contact Us',
+          ctaLink: '#contact'
+        }
+      ]
+    },
+    schema: {
+      title: { type: 'string', maxLength: 100, required: true },
+      subtitle: { type: 'string', maxLength: 200, required: false },
+      items: {
+        type: 'array',
+        minItems: 1,
+        maxItems: 9,
+        itemSchema: {
+          icon: { type: 'enum', values: AVAILABLE_ICONS, required: false },
+          title: { type: 'string', maxLength: 100, required: true },
+          description: { type: 'string', maxLength: 500, required: true },
+          price: { type: 'string', maxLength: 50, required: false },
+          ctaText: { type: 'string', maxLength: 30, required: false },
+          ctaLink: { type: 'string', maxLength: 200, required: false }
+        }
+      }
+    }
+  },
+
+  story: {
+    type: 'story',
+    displayName: 'Our Story',
+    description: 'Tell your company story with image and text',
+    defaultContent: {
+      title: 'Our Story',
+      content: '<p>We started with a simple mission: to make a difference in our industry.</p><p>Over the years, we\'ve grown from a small team to a trusted partner for hundreds of businesses. Our commitment to quality and customer satisfaction remains at the core of everything we do.</p>',
+      image: 'https://placehold.co/600x400/f3f4f6/6b7280?text=Our+Story',
+      imagePosition: 'right',
+      highlights: [
+        { label: 'Years in Business', value: '10+' },
+        { label: 'Happy Clients', value: '500+' },
+        { label: 'Projects Completed', value: '1000+' }
+      ]
+    },
+    schema: {
+      title: { type: 'string', maxLength: 100, required: true },
+      content: { type: 'text', maxLength: 5000, required: true },
+      image: { type: 'url', required: false },
+      imagePosition: { type: 'enum', values: ['left', 'right'], required: false },
+      highlights: {
+        type: 'array',
+        maxItems: 4,
+        itemSchema: {
+          label: { type: 'string', maxLength: 50, required: true },
+          value: { type: 'string', maxLength: 20, required: true }
+        }
+      }
+    }
+  },
+
+  gallery: {
+    type: 'gallery',
+    displayName: 'Image Gallery',
+    description: 'Display a gallery of images',
+    defaultContent: {
+      title: 'Gallery',
+      subtitle: 'See our work in action',
+      columns: 3,
+      images: [
+        { url: 'https://placehold.co/400x400/3B82F6/white?text=Project+1', caption: 'Project 1', alt: 'Project image' },
+        { url: 'https://placehold.co/400x400/10B981/white?text=Project+2', caption: 'Project 2', alt: 'Project image' },
+        { url: 'https://placehold.co/400x400/8B5CF6/white?text=Project+3', caption: 'Project 3', alt: 'Project image' }
+      ]
+    },
+    schema: {
+      title: { type: 'string', maxLength: 100, required: false },
+      subtitle: { type: 'string', maxLength: 200, required: false },
+      columns: { type: 'enum', values: [2, 3, 4], required: false },
+      images: {
+        type: 'array',
+        minItems: 1,
+        maxItems: 20,
+        itemSchema: {
+          url: { type: 'url', required: false },
+          caption: { type: 'string', maxLength: 100, required: false },
+          alt: { type: 'string', maxLength: 100, required: false }
+        }
+      }
+    }
+  },
+
+  contactForm: {
+    type: 'contactForm',
+    displayName: 'Contact Form',
+    description: 'Lead capture form with configurable fields',
+    defaultContent: {
+      title: 'Get in Touch',
+      subtitle: 'Fill out the form below and we\'ll get back to you within 24 hours.',
+      successMessage: 'Thank you! We\'ll be in touch soon.',
+      submitButtonText: 'Send Message',
+      fields: [
+        { name: 'name', label: 'Full Name', type: 'text', required: true, placeholder: 'Your name' },
+        { name: 'email', label: 'Email Address', type: 'email', required: true, placeholder: 'you@example.com' },
+        { name: 'phone', label: 'Phone Number', type: 'tel', required: false, placeholder: '(555) 123-4567' },
+        { name: 'message', label: 'Message', type: 'textarea', required: true, placeholder: 'How can we help you?' }
+      ],
+      contactInfo: {
+        email: 'hello@example.com',
+        phone: null,
+        address: null,
+        hours: null
+      }
+    },
+    schema: {
+      title: { type: 'string', maxLength: 100, required: true },
+      subtitle: { type: 'string', maxLength: 300, required: false },
+      successMessage: { type: 'string', maxLength: 200, required: false },
+      submitButtonText: { type: 'string', maxLength: 30, required: false },
+      fields: {
+        type: 'array',
+        minItems: 1,
+        maxItems: 10,
+        itemSchema: {
+          name: { type: 'string', maxLength: 50, required: true },
+          label: { type: 'string', maxLength: 100, required: true },
+          type: { type: 'enum', values: ['text', 'email', 'tel', 'textarea', 'select'], required: true },
+          required: { type: 'boolean', required: false },
+          placeholder: { type: 'string', maxLength: 100, required: false },
+          options: { type: 'array', maxItems: 20, itemType: 'string' }
+        }
+      },
+      contactInfo: {
+        type: 'object',
+        schema: {
+          email: { type: 'email', required: false },
+          phone: { type: 'string', maxLength: 30, required: false },
+          address: { type: 'string', maxLength: 200, required: false },
+          hours: { type: 'string', maxLength: 200, required: false }
+        }
+      }
+    }
   }
 };
 

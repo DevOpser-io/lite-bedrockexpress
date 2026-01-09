@@ -1507,9 +1507,30 @@
       function init() {
         if (isAuthenticated && currentUser) {
           updateUIForAuthenticatedUser();
+
+          // Check for pending site config after auth (stored before page reload)
+          const pendingSiteConfig = localStorage.getItem('pendingSiteConfig');
+          const pendingSitePrompt = localStorage.getItem('pendingSitePrompt');
+
+          if (pendingSiteConfig) {
+            localStorage.removeItem('pendingSiteConfig');
+            try {
+              const config = JSON.parse(pendingSiteConfig);
+              console.log('[Landing] Found pending site config, creating site...');
+              createSiteAndRedirect(config);
+              return; // Don't continue initialization, we're redirecting
+            } catch (e) {
+              console.error('[Landing] Error parsing pending site config:', e);
+            }
+          } else if (pendingSitePrompt) {
+            localStorage.removeItem('pendingSitePrompt');
+            console.log('[Landing] Found pending site prompt, creating site...');
+            createSiteFromPromptAndRedirect(pendingSitePrompt);
+            return; // Don't continue initialization, we're redirecting
+          }
         }
 
-        // Check for pending prompt in localStorage
+        // Check for pending prompt in localStorage (older flow)
         const stored = localStorage.getItem('pendingPrompt');
         if (stored && isAuthenticated) {
           localStorage.removeItem('pendingPrompt');
@@ -2016,6 +2037,7 @@
           const response = await fetch('/auth/magic-link/verify', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
+            credentials: 'same-origin',
             body: JSON.stringify({ email: authEmail, code })
           });
 
@@ -2026,14 +2048,17 @@
             currentUser = { email: authEmail };
             localStorage.removeItem('pendingPrompt');
 
-            // If we have a preview config, create a site and redirect to builder
+            // Store config in localStorage so we can create site after page reload
+            // Page reload is needed to get the new authenticated session cookie
             if (currentSiteConfig) {
+              localStorage.setItem('pendingSiteConfig', JSON.stringify(currentSiteConfig));
               authVerifyCodeBtn.textContent = 'Creating your site...';
-              await createSiteAndRedirect(currentSiteConfig);
+              // Reload page to get fresh session, then create site
+              window.location.reload();
             } else if (pendingPrompt) {
-              // No preview yet, create site with prompt and redirect
+              localStorage.setItem('pendingSitePrompt', pendingPrompt);
               authVerifyCodeBtn.textContent = 'Creating your site...';
-              await createSiteFromPromptAndRedirect(pendingPrompt);
+              window.location.reload();
             } else {
               // No config or prompt, just go to sites list
               window.location.href = '/sites';
@@ -2060,6 +2085,7 @@
           const response = await fetch('/api/sites', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
+            credentials: 'same-origin',
             body: JSON.stringify({
               name: config.siteName || 'My Website',
               draftConfig: config
@@ -2067,6 +2093,11 @@
           });
 
           if (!response.ok) {
+            // If redirected to login, the session wasn't preserved - reload page
+            if (response.redirected || response.status === 302) {
+              window.location.reload();
+              return;
+            }
             throw new Error('Failed to create site');
           }
 
@@ -2088,6 +2119,7 @@
           const response = await fetch('/api/sites', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
+            credentials: 'same-origin',
             body: JSON.stringify({
               name: 'My Website',
               initialPrompt: prompt

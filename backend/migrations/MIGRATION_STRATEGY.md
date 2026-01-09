@@ -13,7 +13,7 @@ Every migration checks for existence before creating/modifying database objects:
 
 ### 2. Migration Timestamps
 - Format: `YYYYMMDDHHMMSS-descriptive-name.js`
-- Example: `20260108120000-add-sites-tables.js`
+- Example: `20260109120000-add-image-fields.js`
 - Sequelize tracks executed migrations by filename in `SequelizeMeta` table
 
 ### 3. Merge Strategy
@@ -25,37 +25,32 @@ Every migration checks for existence before creating/modifying database objects:
    - Update `SequelizeMeta` if already deployed
 
 #### Safe deployment process:
-1. Migrations run automatically on K8s deployment
+1. Migrations run automatically on deployment
 2. If deployment fails mid-migration, next deployment will resume from last successful migration
 3. Multiple pods can safely run migrations simultaneously due to idempotency
 
 ## Current Migration Structure
 
-### DevOpser Lite Tables
-
-| Table | Description |
-|-------|-------------|
-| `Users` | User accounts (from initial schema) |
-| `conversations` | Chat history (from initial schema) |
-| `sites` | Customer websites with draft/published configs |
-| `deployments` | Deployment history for sites |
-| `site_images` | AI-generated images for sites |
+### DevOpser Lite Tables:
+- `sites` - User websites with draft/published configs
+- `deployments` - Deployment history and status
+- `site_images` - Uploaded images with S3 keys
 
 ### Migration Files:
-1. `20251222115645-initial-schema.js` - Users and conversations tables
-2. `20260108120000-add-sites-tables.js` - DevOpser Lite sites, deployments, site_images
+1. `20251222115645-initial-schema.js` - Initial user authentication tables
+2. `20260108120000-add-sites-tables.js` - Sites, deployments, and images tables
 
 ## Testing Idempotency
 
 ```bash
 # Test full idempotency
-npx sequelize-cli db:migrate:undo:all --config config/database.js
-npx sequelize-cli db:migrate --config config/database.js
-npx sequelize-cli db:migrate --config config/database.js  # Should report "No migrations were executed"
+npx sequelize-cli db:migrate:undo:all
+npx sequelize-cli db:migrate
+npx sequelize-cli db:migrate  # Should report "No migrations were executed"
 
 # Test partial state recovery
-npx sequelize-cli db:migrate:undo --name 20260108120000-add-sites-tables.js --config config/database.js
-npx sequelize-cli db:migrate --config config/database.js  # Should only run the undone migration
+npx sequelize-cli db:migrate:undo --name [migration-name]
+npx sequelize-cli db:migrate  # Should only run the undone migration
 ```
 
 ## Best Practices
@@ -84,14 +79,4 @@ Ensure database user has proper permissions:
 GRANT ALL ON SCHEMA public TO devuser;
 GRANT ALL ON ALL TABLES IN SCHEMA public TO devuser;
 GRANT ALL ON ALL SEQUENCES IN SCHEMA public TO devuser;
-```
-
-### Password authentication errors
-For local PostgreSQL with peer authentication:
-```bash
-# Option 1: Set password for postgres user
-sudo -u postgres psql -c "ALTER USER postgres PASSWORD 'your_password';"
-
-# Option 2: Update pg_hba.conf for local connections
-# Change 'peer' to 'trust' or 'md5' for local connections
 ```

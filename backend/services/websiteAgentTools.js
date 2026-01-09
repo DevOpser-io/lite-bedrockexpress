@@ -7,6 +7,7 @@
 
 const { SECTION_SCHEMAS, THEME_PRESETS, AVAILABLE_ICONS } = require('../config/sectionSchemas');
 const { v4: uuidv4 } = require('uuid');
+const { PAGE_TEMPLATES, addPageToConfig, removePageFromConfig, getAvailableTemplates } = require('./pageTemplates');
 
 /**
  * Tool definitions for Claude
@@ -49,7 +50,7 @@ const WEBSITE_TOOLS = [
   },
   {
     name: 'add_section',
-    description: 'Add a new section to the website. Available section types: hero (main banner), features (feature grid), about (about text), testimonials (customer quotes), pricing (pricing tiers), contact (contact form), footer (site footer).',
+    description: 'Add a new section to the current page. Available section types: hero (main banner), features (feature grid), about (about text), testimonials (customer quotes), pricing (pricing tiers), contact (contact info), footer (site footer), team (team member cards), services (service offerings), story (about story with image), gallery (image gallery), contactForm (lead capture form).',
     input_schema: {
       type: 'object',
       properties: {
@@ -65,6 +66,10 @@ const WEBSITE_TOOLS = [
         content: {
           type: 'object',
           description: 'Section content. Structure depends on section type.'
+        },
+        pageId: {
+          type: 'string',
+          description: 'ID of the page to add section to. If omitted, uses the current/first page.'
         }
       },
       required: ['type']
@@ -173,6 +178,80 @@ const WEBSITE_TOOLS = [
       },
       required: ['siteName', 'sections']
     }
+  },
+  {
+    name: 'add_page',
+    description: 'Add a new page to the website using a template. Available templates: home (landing page with hero, features, testimonials), about (company story and team), services (service offerings and pricing), contact (contact form with business info), team (team members), gallery (image showcase).',
+    input_schema: {
+      type: 'object',
+      properties: {
+        template: {
+          type: 'string',
+          enum: Object.keys(PAGE_TEMPLATES),
+          description: 'Page template to use'
+        },
+        name: {
+          type: 'string',
+          description: 'Custom page name (optional, uses template name if not provided)'
+        },
+        slug: {
+          type: 'string',
+          description: 'URL slug for the page (optional, uses template slug if not provided)'
+        }
+      },
+      required: ['template']
+    }
+  },
+  {
+    name: 'remove_page',
+    description: 'Remove a page from the website. Cannot remove the home page.',
+    input_schema: {
+      type: 'object',
+      properties: {
+        pageId: {
+          type: 'string',
+          description: 'ID of the page to remove'
+        },
+        pageName: {
+          type: 'string',
+          description: 'Name of the page to remove (alternative to pageId)'
+        }
+      }
+    }
+  },
+  {
+    name: 'list_pages',
+    description: 'List all pages in the website with their IDs, names, and slugs.',
+    input_schema: {
+      type: 'object',
+      properties: {}
+    }
+  },
+  {
+    name: 'update_navigation',
+    description: 'Update the site navigation menu order or labels.',
+    input_schema: {
+      type: 'object',
+      properties: {
+        links: {
+          type: 'array',
+          items: {
+            type: 'object',
+            properties: {
+              pageId: { type: 'string', description: 'ID of the page' },
+              label: { type: 'string', description: 'Display label in navigation' }
+            },
+            required: ['pageId', 'label']
+          },
+          description: 'Array of navigation links in desired order'
+        },
+        style: {
+          type: 'string',
+          enum: ['fixed-top', 'static', 'hidden'],
+          description: 'Navigation bar style'
+        }
+      }
+    }
   }
 ];
 
@@ -210,6 +289,18 @@ function executeTool(toolName, toolInput, currentConfig) {
 
       case 'create_full_site':
         return executeCreateFullSite(config, toolInput);
+
+      case 'add_page':
+        return executeAddPage(config, toolInput);
+
+      case 'remove_page':
+        return executeRemovePage(config, toolInput);
+
+      case 'list_pages':
+        return executeListPages(config, toolInput);
+
+      case 'update_navigation':
+        return executeUpdateNavigation(config, toolInput);
 
       default:
         return {
@@ -560,6 +651,123 @@ function executeCreateFullSite(existingConfig, input) {
 }
 
 /**
+ * Add a new page to the site
+ */
+function executeAddPage(config, input) {
+  try {
+    const overrides = {};
+    if (input.name) overrides.name = input.name;
+    if (input.slug) overrides.slug = input.slug;
+
+    const newConfig = addPageToConfig(config, input.template, overrides);
+    const newPage = newConfig.pages[newConfig.pages.length - 1];
+
+    return {
+      success: true,
+      config: newConfig,
+      message: `Added "${newPage.name}" page (${newPage.slug ? '/' + newPage.slug : 'home'}) with ${newPage.sections.length} sections`
+    };
+  } catch (error) {
+    return {
+      success: false,
+      config,
+      message: `Error adding page: ${error.message}`
+    };
+  }
+}
+
+/**
+ * Remove a page from the site
+ */
+function executeRemovePage(config, input) {
+  // Find page by ID or name
+  let pageId = input.pageId;
+
+  if (!pageId && input.pageName && config.pages) {
+    const page = config.pages.find(p =>
+      p.name.toLowerCase() === input.pageName.toLowerCase()
+    );
+    if (page) pageId = page.id;
+  }
+
+  if (!pageId) {
+    return {
+      success: false,
+      config,
+      message: 'Page not found. Available pages: ' + (config.pages ? config.pages.map(p => `${p.name} (${p.id})`).join(', ') : 'none')
+    };
+  }
+
+  try {
+    const newConfig = removePageFromConfig(config, pageId);
+    return {
+      success: true,
+      config: newConfig,
+      message: `Removed page successfully`
+    };
+  } catch (error) {
+    return {
+      success: false,
+      config,
+      message: `Error removing page: ${error.message}`
+    };
+  }
+}
+
+/**
+ * List all pages in the site
+ */
+function executeListPages(config, input) {
+  if (!config.pages || config.pages.length === 0) {
+    return {
+      success: true,
+      config,
+      message: 'No pages in site. Site uses legacy single-page format with sections at root.'
+    };
+  }
+
+  const pageList = config.pages.map(p => {
+    const slug = p.slug || '(home)';
+    return `- ${p.name} (ID: ${p.id}, URL: /${slug}, ${p.sections.length} sections)`;
+  }).join('\n');
+
+  return {
+    success: true,
+    config,
+    message: `Site has ${config.pages.length} page(s):\n${pageList}`
+  };
+}
+
+/**
+ * Update navigation configuration
+ */
+function executeUpdateNavigation(config, input) {
+  const newConfig = JSON.parse(JSON.stringify(config));
+
+  if (!newConfig.navigation) {
+    newConfig.navigation = {
+      style: 'fixed-top',
+      logo: { url: null, alt: newConfig.siteName },
+      links: []
+    };
+  }
+
+  if (input.links) {
+    newConfig.navigation.links = input.links;
+  }
+
+  if (input.style) {
+    newConfig.navigation.style = input.style;
+  }
+
+  return {
+    success: true,
+    config: newConfig,
+    message: 'Navigation updated successfully'
+  };
+}
+
+/**
  * Deep merge two objects
  */
 function deepMerge(target, source) {
@@ -610,8 +818,13 @@ Valid properties:
 ${generateSchemaDocumentation(type, schema)}`;
   }).join('\n\n');
 
+  // Generate page templates documentation
+  const templateDocs = Object.entries(PAGE_TEMPLATES).map(([id, template]) => {
+    return `- ${id}: ${template.description}`;
+  }).join('\n');
+
   let prompt = `You are a website builder AI assistant for DevOpser Lite.
-You help users create and modify websites by using the available tools.
+You help users create and modify MULTI-PAGE websites by using the available tools.
 
 ## CRITICAL CONSTRAINTS - READ FIRST
 1. You can ONLY use properties listed in this prompt - DO NOT invent new properties
@@ -621,33 +834,68 @@ You help users create and modify websites by using the available tools.
 5. Colors MUST be hex format like "#000000", never CSS names like "black"
 6. You MUST call tools to make changes - never just describe what you would do
 
+## MULTI-PAGE ARCHITECTURE
+DevOpser Lite supports multi-page websites:
+- Websites can have multiple pages (Home, About, Services, Contact, etc.)
+- Each page has its own sections
+- Pages are linked through navigation menu
+- Use add_page to add new pages from templates
+- Use list_pages to see all pages
+- Use remove_page to delete a page (except home)
+- Use update_navigation to manage the menu
+
+## PAGE TEMPLATES
+Available page templates for add_page:
+${templateDocs}
+
+Example: add_page with template: "about" to add an About Us page
+
+## SECTION TYPES
+Available section types for any page:
+- hero: Main banner with headline, background, and CTA button
+- features: Feature grid with icons and descriptions
+- about: About text section
+- testimonials: Customer quotes and reviews
+- pricing: Pricing tiers and plans
+- contact: Contact information display
+- footer: Site footer with links
+- team: Team member cards with photos, names, roles
+- services: Service offerings with icons, descriptions, prices
+- story: Company story section with image and highlights
+- gallery: Image gallery grid with lightbox
+- contactForm: Lead capture form with customizable fields
+
 ## SYSTEM ARCHITECTURE
 DevOpser Lite is a JSON-based website builder:
-- Websites are JSON configurations with sections (hero, features, about, etc.)
+- Websites are JSON configurations with pages containing sections
 - The JSON maps to pre-built, CSP-compliant HTML/CSS templates
 - Users edit content via drag-and-drop editor OR chat with you
 - Sites deploy to Kubernetes with strict Content Security Policy
 - NO inline styles, NO external fonts, NO inline scripts allowed
 
 ## WHAT YOU CAN DO
+- Add new pages with add_page using templates (about, services, contact, team, gallery)
+- List pages with list_pages
+- Remove pages with remove_page
+- Update navigation menu with update_navigation
 - Create new websites with create_full_site (ONLY for brand new empty sites)
 - Add/remove/reorder sections with add_section, remove_section, reorder_sections
 - Update section content (text, colors, items) with update_section
 - Change theme colors and fonts with update_theme
-- Help users describe what they want
 
 ## WHAT YOU CANNOT DO
-- Add custom CSS or styling
+- Add custom CSS, inline styles, or styling attributes
 - Use external images (unless user provides URL)
 - Add custom HTML or JavaScript
 - Use properties not listed below
 - Suggest features the system doesn't support
+- NEVER suggest style="..." attributes - they violate CSP and will be blocked
 
 ## CRITICAL: PRESERVING USER CHANGES
 The user may have made changes via the visual editor (drag-drop, inline editing).
 These changes are reflected in the CURRENT SITE CONFIGURATION below.
 YOU MUST PRESERVE THESE CHANGES:
-- NEVER use create_full_site if sections already exist - use update_section instead
+- NEVER use create_full_site if pages/sections already exist - use update_section instead
 - When updating a section, only change the specific fields requested
 - Preserve section ORDER - sections have been reordered by the user
 - Preserve existing content that the user didn't ask to change
@@ -671,9 +919,12 @@ The theme object supports:
 Available presets: ${Object.keys(THEME_PRESETS).join(', ')}
 
 ## AVAILABLE ICONS
-For feature icons, use: ${AVAILABLE_ICONS.join(', ')}
+For feature/service icons, use: ${AVAILABLE_ICONS.join(', ')}
 
 ## COMMON TASKS - EXACT SYNTAX
+
+### Add a new page:
+add_page with template: "about" (or "services", "contact", "team", "gallery")
 
 ### Change hero background to black:
 update_section with sectionType: "hero", content: {
@@ -687,9 +938,14 @@ update_theme with primaryColor: "#8B5CF6", secondaryColor: "#EC4899"
 ### Update headline:
 update_section with sectionType: "hero", content: { "headline": "New Headline" }
 
-### Add a feature item:
-update_section with sectionType: "features", content: {
-  "items": [existing items..., { "icon": "rocket", "title": "New", "description": "..." }]
+### Add a team member:
+update_section with sectionType: "team", content: {
+  "members": [existing members..., { "name": "Jane", "role": "Developer", "bio": "...", "photo": "URL" }]
+}
+
+### Add a service:
+update_section with sectionType: "services", content: {
+  "items": [existing items..., { "icon": "wrench", "title": "New Service", "description": "...", "price": "$99" }]
 }
 
 ## ROLLBACK SUPPORT

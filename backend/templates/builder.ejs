@@ -98,6 +98,58 @@
       padding: 0.5rem;
     }
 
+    /* Markdown styles for assistant messages */
+    .chat-message.assistant h4,
+    .chat-message.assistant h5,
+    .chat-message.assistant h6 {
+      margin: 0.5rem 0 0.25rem 0;
+      font-weight: 600;
+    }
+    .chat-message.assistant h4 { font-size: 1.1rem; }
+    .chat-message.assistant h5 { font-size: 1rem; }
+    .chat-message.assistant h6 { font-size: 0.95rem; }
+
+    .chat-message.assistant strong {
+      font-weight: 600;
+    }
+
+    .chat-message.assistant em {
+      font-style: italic;
+    }
+
+    .chat-message.assistant code {
+      background: rgba(0,0,0,0.08);
+      padding: 0.1rem 0.3rem;
+      border-radius: 3px;
+      font-family: 'Courier New', monospace;
+      font-size: 0.85em;
+    }
+
+    .chat-message.assistant pre {
+      background: #1e1e1e;
+      color: #d4d4d4;
+      padding: 0.75rem;
+      border-radius: 4px;
+      overflow-x: auto;
+      margin: 0.5rem 0;
+    }
+
+    .chat-message.assistant pre code {
+      background: none;
+      padding: 0;
+      color: inherit;
+    }
+
+    .chat-message.assistant ul,
+    .chat-message.assistant ol {
+      margin: 0.5rem 0;
+      padding-left: 1.5rem;
+    }
+
+    .chat-message.assistant li {
+      margin: 0.25rem 0;
+    }
+
     .chat-input-container {
       padding: 1rem;
       border-top: 1px solid #dee2e6;
@@ -177,6 +229,50 @@
     /* Site Preview Renderer */
     .site-preview {
       font-family: 'Inter', system-ui, sans-serif;
+    }
+
+    /* Site Navigation Bar */
+    .site-nav {
+      background: #ffffff;
+      padding: 1rem 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid #e5e7eb;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .site-nav-logo {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: var(--primary-color, #3B82F6);
+      text-decoration: none;
+    }
+
+    .site-nav-links {
+      display: flex;
+      gap: 1.5rem;
+      list-style: none;
+      margin: 0;
+      padding: 0;
+    }
+
+    .site-nav-links a {
+      color: #374151;
+      text-decoration: none;
+      font-size: 0.95rem;
+      font-weight: 500;
+      transition: color 0.2s;
+    }
+
+    .site-nav-links a:hover {
+      color: var(--primary-color, #3B82F6);
+    }
+
+    .site-nav-links a.active {
+      color: var(--primary-color, #3B82F6);
     }
 
     .section-hero {
@@ -897,6 +993,580 @@
       height: 1rem;
     }
 
+    /* Page tabs for multi-page sites */
+    .page-tabs {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.5rem 1rem;
+      background: #f8f9fa;
+      border-bottom: 1px solid #dee2e6;
+      overflow-x: auto;
+    }
+
+    .page-tab {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.5rem 1rem;
+      background: white;
+      border: 1px solid #dee2e6;
+      border-radius: 0.375rem;
+      cursor: pointer;
+      white-space: nowrap;
+      font-size: 0.875rem;
+      transition: all 0.2s;
+    }
+
+    .page-tab:hover {
+      background: #e9ecef;
+    }
+
+    .page-tab.active {
+      background: var(--primary-color, #3B82F6);
+      color: white;
+      border-color: var(--primary-color, #3B82F6);
+    }
+
+    .page-tab .delete-page {
+      opacity: 0;
+      margin-left: 0.25rem;
+      padding: 0.125rem 0.25rem;
+      border-radius: 0.25rem;
+      transition: opacity 0.2s;
+    }
+
+    .page-tab:hover .delete-page {
+      opacity: 0.7;
+    }
+
+    .page-tab .delete-page:hover {
+      opacity: 1;
+      background: rgba(220, 53, 69, 0.2);
+    }
+
+    .add-page-btn {
+      padding: 0.5rem;
+      background: transparent;
+      border: 1px dashed #dee2e6;
+      border-radius: 0.375rem;
+      color: #6c757d;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .add-page-btn:hover {
+      background: #e9ecef;
+      border-color: #adb5bd;
+      color: #212529;
+    }
+
+    /* Team Section */
+    .section-team {
+      padding: 4rem 2rem;
+      background: #f8f9fa;
+    }
+
+    .section-team h2 {
+      text-align: center;
+      margin-bottom: 0.5rem;
+    }
+
+    .section-team .team-subtitle {
+      text-align: center;
+      color: #6c757d;
+      margin-bottom: 2rem;
+    }
+
+    .team-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 2rem;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .team-member {
+      background: white;
+      border-radius: 0.5rem;
+      padding: 1.5rem;
+      text-align: center;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+
+    .team-member-photo {
+      width: 120px;
+      height: 120px;
+      border-radius: 50%;
+      object-fit: cover;
+      margin-bottom: 1rem;
+      background: #e9ecef;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 1rem;
+    }
+
+    .team-member-photo i {
+      font-size: 3rem;
+      color: #adb5bd;
+    }
+
+    .team-member-photo img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      border-radius: 50%;
+    }
+
+    .team-member h3 {
+      font-size: 1.125rem;
+      margin-bottom: 0.25rem;
+    }
+
+    .team-member .role {
+      color: var(--primary-color, #3B82F6);
+      font-size: 0.875rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .team-member .bio {
+      color: #6c757d;
+      font-size: 0.875rem;
+      line-height: 1.5;
+    }
+
+    /* Services Section */
+    .section-services {
+      padding: 4rem 2rem;
+      background: white;
+    }
+
+    .section-services h2 {
+      text-align: center;
+      margin-bottom: 0.5rem;
+    }
+
+    .section-services .services-subtitle {
+      text-align: center;
+      color: #6c757d;
+      margin-bottom: 2rem;
+    }
+
+    .services-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1.5rem;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .service-card {
+      background: #f8f9fa;
+      border-radius: 0.5rem;
+      padding: 2rem;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .service-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+    }
+
+    .service-card .service-icon {
+      width: 60px;
+      height: 60px;
+      background: var(--primary-color, #3B82F6);
+      color: white;
+      border-radius: 0.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+      margin-bottom: 1rem;
+    }
+
+    .service-card h3 {
+      font-size: 1.25rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .service-card .description {
+      color: #6c757d;
+      font-size: 0.9rem;
+      line-height: 1.6;
+      margin-bottom: 1rem;
+    }
+
+    .service-card .price {
+      font-size: 1.125rem;
+      font-weight: 600;
+      color: var(--primary-color, #3B82F6);
+      margin-bottom: 1rem;
+    }
+
+    .service-card .service-cta {
+      display: inline-block;
+      padding: 0.5rem 1rem;
+      background: var(--primary-color, #3B82F6);
+      color: white;
+      text-decoration: none;
+      border-radius: 0.375rem;
+      font-size: 0.875rem;
+      transition: background 0.2s;
+    }
+
+    .service-card .service-cta:hover {
+      background: #2563eb;
+    }
+
+    /* Story Section */
+    .section-story {
+      padding: 4rem 2rem;
+      background: white;
+    }
+
+    .story-container {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 3rem;
+      max-width: 1200px;
+      margin: 0 auto;
+      align-items: center;
+    }
+
+    .story-container.image-left {
+      direction: rtl;
+    }
+
+    .story-container.image-left > * {
+      direction: ltr;
+    }
+
+    .story-content h2 {
+      margin-bottom: 1rem;
+    }
+
+    .story-content .story-text {
+      color: #4b5563;
+      line-height: 1.8;
+      margin-bottom: 2rem;
+    }
+
+    .story-content .story-text p {
+      margin-bottom: 1rem;
+    }
+
+    .story-highlights {
+      display: flex;
+      gap: 2rem;
+    }
+
+    .story-highlight {
+      text-align: center;
+    }
+
+    .story-highlight .value {
+      font-size: 2rem;
+      font-weight: 700;
+      color: var(--primary-color, #3B82F6);
+    }
+
+    .story-highlight .label {
+      font-size: 0.875rem;
+      color: #6c757d;
+    }
+
+    .story-image {
+      border-radius: 0.5rem;
+      overflow: hidden;
+      background: #e9ecef;
+      aspect-ratio: 4/3;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .story-image img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .story-image i {
+      font-size: 4rem;
+      color: #adb5bd;
+    }
+
+    /* Gallery Section */
+    .section-gallery {
+      padding: 4rem 2rem;
+      background: #f8f9fa;
+    }
+
+    .section-gallery h2 {
+      text-align: center;
+      margin-bottom: 0.5rem;
+    }
+
+    .section-gallery .gallery-subtitle {
+      text-align: center;
+      color: #6c757d;
+      margin-bottom: 2rem;
+    }
+
+    .gallery-grid {
+      display: grid;
+      gap: 1rem;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .gallery-grid.cols-2 { grid-template-columns: repeat(2, 1fr); }
+    .gallery-grid.cols-3 { grid-template-columns: repeat(3, 1fr); }
+    .gallery-grid.cols-4 { grid-template-columns: repeat(4, 1fr); }
+
+    .gallery-item {
+      position: relative;
+      aspect-ratio: 1;
+      border-radius: 0.5rem;
+      overflow: hidden;
+      cursor: pointer;
+      background: #e9ecef;
+    }
+
+    .gallery-item img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform 0.3s;
+    }
+
+    .gallery-item:hover img {
+      transform: scale(1.05);
+    }
+
+    .gallery-item .caption {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      padding: 1rem;
+      background: linear-gradient(transparent, rgba(0,0,0,0.7));
+      color: white;
+      font-size: 0.875rem;
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+
+    .gallery-item:hover .caption {
+      opacity: 1;
+    }
+
+    .gallery-item .placeholder {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+      color: #adb5bd;
+      font-size: 2rem;
+    }
+
+    /* Contact Form Section */
+    .section-contactForm {
+      padding: 4rem 2rem;
+      background: white;
+    }
+
+    .contactForm-container {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 3rem;
+      max-width: 1000px;
+      margin: 0 auto;
+    }
+
+    .contactForm-content h2 {
+      margin-bottom: 0.5rem;
+    }
+
+    .contactForm-content .form-subtitle {
+      color: #6c757d;
+      margin-bottom: 2rem;
+    }
+
+    .contactForm-info {
+      margin-top: 2rem;
+    }
+
+    .contactForm-info .info-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 1rem;
+      margin-bottom: 1rem;
+    }
+
+    .contactForm-info .info-item i {
+      color: var(--primary-color, #3B82F6);
+      font-size: 1.25rem;
+      width: 24px;
+    }
+
+    .contactForm-info .info-item span {
+      color: #4b5563;
+    }
+
+    .contact-form .form-group {
+      margin-bottom: 1rem;
+    }
+
+    .contact-form label {
+      display: block;
+      font-size: 0.875rem;
+      font-weight: 500;
+      margin-bottom: 0.25rem;
+      color: #374151;
+    }
+
+    .contact-form input,
+    .contact-form textarea,
+    .contact-form select {
+      width: 100%;
+      padding: 0.75rem;
+      border: 1px solid #d1d5db;
+      border-radius: 0.375rem;
+      font-size: 0.9rem;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    .contact-form input:focus,
+    .contact-form textarea:focus,
+    .contact-form select:focus {
+      outline: none;
+      border-color: var(--primary-color, #3B82F6);
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    }
+
+    .contact-form textarea {
+      resize: vertical;
+      min-height: 120px;
+    }
+
+    .contact-form .submit-btn {
+      width: 100%;
+      padding: 0.75rem;
+      background: var(--primary-color, #3B82F6);
+      color: white;
+      border: none;
+      border-radius: 0.375rem;
+      font-size: 1rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .contact-form .submit-btn:hover {
+      background: #2563eb;
+    }
+
+    /* Image picker modal */
+    .image-picker-modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0,0,0,0.5);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 2000;
+    }
+
+    .image-picker-modal.active {
+      display: flex;
+    }
+
+    .image-picker-content {
+      background: white;
+      border-radius: 0.5rem;
+      width: 90%;
+      max-width: 600px;
+      max-height: 80vh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .image-picker-header {
+      padding: 1rem;
+      border-bottom: 1px solid #dee2e6;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .image-picker-header h5 {
+      margin: 0;
+    }
+
+    .image-picker-body {
+      flex: 1;
+      overflow-y: auto;
+      padding: 1rem;
+    }
+
+    .image-upload-zone {
+      border: 2px dashed #dee2e6;
+      border-radius: 0.5rem;
+      padding: 2rem;
+      text-align: center;
+      cursor: pointer;
+      transition: border-color 0.2s, background 0.2s;
+      margin-bottom: 1rem;
+    }
+
+    .image-upload-zone:hover,
+    .image-upload-zone.dragover {
+      border-color: var(--primary-color, #3B82F6);
+      background: rgba(59, 130, 246, 0.05);
+    }
+
+    .image-upload-zone i {
+      font-size: 2rem;
+      color: #6c757d;
+      margin-bottom: 0.5rem;
+    }
+
+    .site-images-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0.5rem;
+    }
+
+    .site-image-item {
+      aspect-ratio: 1;
+      border-radius: 0.375rem;
+      overflow: hidden;
+      cursor: pointer;
+      border: 2px solid transparent;
+      transition: border-color 0.2s;
+    }
+
+    .site-image-item:hover {
+      border-color: var(--primary-color, #3B82F6);
+    }
+
+    .site-image-item.selected {
+      border-color: var(--primary-color, #3B82F6);
+    }
+
+    .site-image-item img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
     /* Responsive */
     @media (max-width: 768px) {
       .builder-container {
@@ -910,6 +1580,16 @@
 
       .preview-area {
         height: 50%;
+      }
+
+      .story-container,
+      .contactForm-container {
+        grid-template-columns: 1fr;
+      }
+
+      .gallery-grid.cols-3,
+      .gallery-grid.cols-4 {
+        grid-template-columns: repeat(2, 1fr);
       }
     }
   </style>
@@ -1052,6 +1732,20 @@
               .site-preview { --primary-color: <%= primaryColor %>; --secondary-color: <%= secondaryColor %>; }
             </style>
 
+            <!-- Site Navigation -->
+            <nav class="site-nav">
+              <a href="#" class="site-nav-logo" data-editable data-field="siteName"><%= config.siteName || 'My Website' %></a>
+              <ul class="site-nav-links">
+                <% if (config.navigation && config.navigation.links) { %>
+                  <% config.navigation.links.forEach((link, idx) => { %>
+                  <li><a href="#" class="<%= idx === 0 ? 'active' : '' %>"><%= link.label %></a></li>
+                  <% }) %>
+                <% } else { %>
+                  <li><a href="#" class="active">Home</a></li>
+                <% } %>
+              </ul>
+            </nav>
+
             <%
               // Helper to detect dark colors for text contrast
               function isColorDarkEJS(hexColor) {
@@ -1156,6 +1850,151 @@
                 <p><i class="fa-solid fa-envelope me-2"></i><span data-editable data-field="email"><%= section.content.email %></span></p>
                 <% } %>
               </div>
+              <% } else if (section.type === 'team') { %>
+              <div class="section-team" data-section-id="<%= section.id %>" data-section-type="team">
+                <h2 data-editable data-field="title"><%= section.content.title || 'Meet Our Team' %></h2>
+                <% if (section.content.subtitle) { %>
+                <p class="team-subtitle" data-editable data-field="subtitle"><%= section.content.subtitle %></p>
+                <% } %>
+                <div class="team-grid">
+                  <% (section.content.members || []).forEach((member, memberIndex) => { %>
+                  <div class="team-member" data-item-index="<%= memberIndex %>">
+                    <div class="team-member-photo" data-editable-image data-field="members.<%= memberIndex %>.photo">
+                      <% if (member.photo) { %>
+                      <img src="<%= member.photo %>" alt="<%= member.name %>">
+                      <% } else { %>
+                      <i class="fa-solid fa-user"></i>
+                      <% } %>
+                    </div>
+                    <h3 data-editable data-field="members.<%= memberIndex %>.name"><%= member.name || '' %></h3>
+                    <p class="role" data-editable data-field="members.<%= memberIndex %>.role"><%= member.role || '' %></p>
+                    <% if (member.bio) { %>
+                    <p class="bio" data-editable data-field="members.<%= memberIndex %>.bio"><%= member.bio %></p>
+                    <% } %>
+                  </div>
+                  <% }) %>
+                </div>
+              </div>
+              <% } else if (section.type === 'services') { %>
+              <div class="section-services" data-section-id="<%= section.id %>" data-section-type="services">
+                <h2 data-editable data-field="title"><%= section.content.title || 'Our Services' %></h2>
+                <% if (section.content.subtitle) { %>
+                <p class="services-subtitle" data-editable data-field="subtitle"><%= section.content.subtitle %></p>
+                <% } %>
+                <div class="services-grid">
+                  <% (section.content.items || []).forEach((item, itemIndex) => { %>
+                  <div class="service-card" data-item-index="<%= itemIndex %>">
+                    <% if (item.icon) { %>
+                    <div class="service-icon" data-editable-icon data-field="items.<%= itemIndex %>.icon" data-current-icon="<%= item.icon %>"><i class="fa-solid fa-<%= item.icon %>"></i></div>
+                    <% } %>
+                    <h3 data-editable data-field="items.<%= itemIndex %>.title"><%= item.title || '' %></h3>
+                    <p class="description" data-editable data-field="items.<%= itemIndex %>.description"><%= item.description || '' %></p>
+                    <% if (item.price) { %>
+                    <p class="price" data-editable data-field="items.<%= itemIndex %>.price"><%= item.price %></p>
+                    <% } %>
+                    <% if (item.ctaText) { %>
+                    <a href="<%= item.ctaLink || '#' %>" class="service-cta" data-editable-link data-field="items.<%= itemIndex %>.ctaText" data-link-field="items.<%= itemIndex %>.ctaLink"><%= item.ctaText %></a>
+                    <% } %>
+                  </div>
+                  <% }) %>
+                </div>
+              </div>
+              <% } else if (section.type === 'story') { %>
+              <div class="section-story" data-section-id="<%= section.id %>" data-section-type="story">
+                <div class="story-container<%= section.content.imagePosition === 'left' ? ' image-left' : '' %>">
+                  <div class="story-content">
+                    <h2 data-editable data-field="title"><%= section.content.title || 'Our Story' %></h2>
+                    <div class="story-text" data-editable data-field="content"><%- section.content.content || '' %></div>
+                    <% if (section.content.highlights && section.content.highlights.length > 0) { %>
+                    <div class="story-highlights">
+                      <% section.content.highlights.forEach((highlight, hIndex) => { %>
+                      <div class="story-highlight">
+                        <div class="value" data-editable data-field="highlights.<%= hIndex %>.value"><%= highlight.value || '' %></div>
+                        <div class="label" data-editable data-field="highlights.<%= hIndex %>.label"><%= highlight.label || '' %></div>
+                      </div>
+                      <% }) %>
+                    </div>
+                    <% } %>
+                  </div>
+                  <div class="story-image" data-editable-image data-field="image">
+                    <% if (section.content.image) { %>
+                    <img src="<%= section.content.image %>" alt="<%= section.content.title || 'Our Story' %>">
+                    <% } else { %>
+                    <i class="fa-solid fa-image"></i>
+                    <% } %>
+                  </div>
+                </div>
+              </div>
+              <% } else if (section.type === 'gallery') { %>
+              <div class="section-gallery" data-section-id="<%= section.id %>" data-section-type="gallery">
+                <% if (section.content.title) { %>
+                <h2 data-editable data-field="title"><%= section.content.title %></h2>
+                <% } %>
+                <% if (section.content.subtitle) { %>
+                <p class="gallery-subtitle" data-editable data-field="subtitle"><%= section.content.subtitle %></p>
+                <% } %>
+                <div class="gallery-grid cols-<%= section.content.columns || 3 %>">
+                  <% (section.content.images || []).forEach((image, imgIndex) => { %>
+                  <div class="gallery-item" data-item-index="<%= imgIndex %>" data-editable-image data-field="images.<%= imgIndex %>.url">
+                    <% if (image.url) { %>
+                    <img src="<%= image.url %>" alt="<%= image.alt || image.caption || '' %>">
+                    <% if (image.caption) { %>
+                    <div class="caption"><%= image.caption %></div>
+                    <% } %>
+                    <% } else { %>
+                    <div class="placeholder"><i class="fa-solid fa-image"></i></div>
+                    <% } %>
+                  </div>
+                  <% }) %>
+                </div>
+              </div>
+              <% } else if (section.type === 'contactForm') { %>
+              <div class="section-contactForm" data-section-id="<%= section.id %>" data-section-type="contactForm">
+                <div class="contactForm-container">
+                  <div class="contactForm-content">
+                    <h2 data-editable data-field="title"><%= section.content.title || 'Get in Touch' %></h2>
+                    <% if (section.content.subtitle) { %>
+                    <p class="form-subtitle" data-editable data-field="subtitle"><%= section.content.subtitle %></p>
+                    <% } %>
+                    <% if (section.content.contactInfo) { %>
+                    <div class="contactForm-info">
+                      <% if (section.content.contactInfo.email) { %>
+                      <div class="info-item"><i class="fa-solid fa-envelope"></i><span data-editable data-field="contactInfo.email"><%= section.content.contactInfo.email %></span></div>
+                      <% } %>
+                      <% if (section.content.contactInfo.phone) { %>
+                      <div class="info-item"><i class="fa-solid fa-phone"></i><span data-editable data-field="contactInfo.phone"><%= section.content.contactInfo.phone %></span></div>
+                      <% } %>
+                      <% if (section.content.contactInfo.address) { %>
+                      <div class="info-item"><i class="fa-solid fa-location-dot"></i><span data-editable data-field="contactInfo.address"><%= section.content.contactInfo.address %></span></div>
+                      <% } %>
+                      <% if (section.content.contactInfo.hours) { %>
+                      <div class="info-item"><i class="fa-solid fa-clock"></i><span data-editable data-field="contactInfo.hours"><%= section.content.contactInfo.hours %></span></div>
+                      <% } %>
+                    </div>
+                    <% } %>
+                  </div>
+                  <div class="contact-form">
+                    <% (section.content.fields || []).forEach(field => { %>
+                    <div class="form-group">
+                      <label><%= field.label || field.name %><%= field.required ? ' *' : '' %></label>
+                      <% if (field.type === 'textarea') { %>
+                      <textarea name="<%= field.name %>" placeholder="<%= field.placeholder || '' %>"<%= field.required ? ' required' : '' %>></textarea>
+                      <% } else if (field.type === 'select' && field.options) { %>
+                      <select name="<%= field.name %>"<%= field.required ? ' required' : '' %>>
+                        <option value=""><%= field.placeholder || 'Select...' %></option>
+                        <% field.options.forEach(opt => { %>
+                        <option value="<%= opt %>"><%= opt %></option>
+                        <% }) %>
+                      </select>
+                      <% } else { %>
+                      <input type="<%= field.type || 'text' %>" name="<%= field.name %>" placeholder="<%= field.placeholder || '' %>"<%= field.required ? ' required' : '' %>>
+                      <% } %>
+                    </div>
+                    <% }) %>
+                    <button type="submit" class="submit-btn"><%= section.content.submitButtonText || 'Send Message' %></button>
+                  </div>
+                </div>
+              </div>
               <% } else if (section.type === 'footer') { %>
               <div class="section-footer" data-section-id="<%= section.id %>" data-section-type="footer">
                 <p data-editable data-field="copyright"><%= section.content.copyright || '© ' + new Date().getFullYear() + ' ' + (section.content.companyName || config.siteName) %></p>
@@ -1200,6 +2039,35 @@
     </div>
   </div>
 
+  <!-- Image Picker Modal -->
+  <div class="image-picker-modal" id="imagePickerModal">
+    <div class="image-picker-content">
+      <div class="image-picker-header">
+        <h5>Choose Image</h5>
+        <button type="button" class="btn-close" id="closeImagePicker"></button>
+      </div>
+      <div class="image-picker-body">
+        <div class="image-upload-zone" id="imageUploadZone">
+          <i class="fa-solid fa-cloud-arrow-up"></i>
+          <p>Drag & drop an image or click to upload</p>
+          <input type="file" id="imageFileInput" accept="image/*" hidden>
+        </div>
+        <div id="uploadProgress" class="mb-3" style="display: none;">
+          <div class="progress">
+            <div class="progress-bar" role="progressbar" style="width: 0%"></div>
+          </div>
+        </div>
+        <h6 class="mt-3 mb-2">Your Images</h6>
+        <div class="site-images-grid" id="siteImagesGrid">
+          <!-- Images will be populated by JavaScript -->
+        </div>
+        <div id="noImagesMessage" class="text-muted text-center py-3">
+          No images uploaded yet
+        </div>
+      </div>
+    </div>
+  </div>
+
   <script nonce="<%= cspNonce %>">
     // Site data from server
     const siteId = '<%= site ? site.id : "" %>';
@@ -1216,11 +2084,61 @@
     let chatHistory = [];
     let isProcessing = false;
 
+    // Simple markdown formatter for chat messages
+    function formatMarkdown(text) {
+      if (!text) return '';
+
+      // Escape HTML first
+      let html = escapeHtml(text);
+
+      // Code blocks (```)
+      html = html.replace(/```(\w*)\n?([\s\S]*?)```/g, '<pre><code>$2</code></pre>');
+
+      // Inline code (`)
+      html = html.replace(/`([^`]+)`/g, '<code>$1</code>');
+
+      // Bold (**text** or __text__)
+      html = html.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+      html = html.replace(/__([^_]+)__/g, '<strong>$1</strong>');
+
+      // Italic (*text* or _text_)
+      html = html.replace(/\*([^*]+)\*/g, '<em>$1</em>');
+      html = html.replace(/_([^_]+)_/g, '<em>$1</em>');
+
+      // Headers (## Header)
+      html = html.replace(/^### (.+)$/gm, '<h6>$1</h6>');
+      html = html.replace(/^## (.+)$/gm, '<h5>$1</h5>');
+      html = html.replace(/^# (.+)$/gm, '<h4>$1</h4>');
+
+      // Bullet lists (- item or * item at start of line)
+      html = html.replace(/^[\-\*] (.+)$/gm, '<li>$1</li>');
+      html = html.replace(/(<li>.*<\/li>\n?)+/g, '<ul>$&</ul>');
+
+      // Numbered lists (1. item)
+      html = html.replace(/^\d+\. (.+)$/gm, '<li>$1</li>');
+
+      // Line breaks
+      html = html.replace(/\n/g, '<br>');
+
+      // Clean up extra breaks around block elements
+      html = html.replace(/<br>(<\/?(?:ul|ol|li|h[1-6]|pre|code)>)/g, '$1');
+      html = html.replace(/(<\/?(?:ul|ol|li|h[1-6]|pre|code)>)<br>/g, '$1');
+
+      return html;
+    }
+
     // Add message to chat
     function addMessage(role, content) {
       const div = document.createElement('div');
       div.className = `chat-message ${role}`;
-      div.textContent = content;
+
+      if (role === 'assistant') {
+        // Format markdown for assistant messages
+        div.innerHTML = formatMarkdown(content);
+      } else {
+        div.textContent = content;
+      }
+
       chatMessages.appendChild(div);
       chatMessages.scrollTop = chatMessages.scrollHeight;
     }
@@ -1421,6 +2339,150 @@
             html += '<p><i class="fa-solid fa-envelope me-2"></i><span data-editable data-field="email">' + escapeHtml(section.content.email) + '</span></p>';
           }
           html += '</div>';
+        } else if (section.type === 'team') {
+          html += '<div class="section-team" data-section-id="' + sectionId + '" data-section-type="team">';
+          html += '<h2 data-editable data-field="title">' + escapeHtml(section.content.title || 'Meet Our Team') + '</h2>';
+          if (section.content.subtitle) {
+            html += '<p class="team-subtitle" data-editable data-field="subtitle">' + escapeHtml(section.content.subtitle) + '</p>';
+          }
+          html += '<div class="team-grid">';
+          (section.content.members || []).forEach(function(member, memberIndex) {
+            html += '<div class="team-member" data-item-index="' + memberIndex + '">';
+            html += '<div class="team-member-photo" data-editable-image data-field="members.' + memberIndex + '.photo">';
+            if (member.photo) {
+              html += '<img src="' + escapeHtml(member.photo) + '" alt="' + escapeHtml(member.name) + '">';
+            } else {
+              html += '<i class="fa-solid fa-user"></i>';
+            }
+            html += '</div>';
+            html += '<h3 data-editable data-field="members.' + memberIndex + '.name">' + escapeHtml(member.name || '') + '</h3>';
+            html += '<p class="role" data-editable data-field="members.' + memberIndex + '.role">' + escapeHtml(member.role || '') + '</p>';
+            if (member.bio) {
+              html += '<p class="bio" data-editable data-field="members.' + memberIndex + '.bio">' + escapeHtml(member.bio) + '</p>';
+            }
+            html += '</div>';
+          });
+          html += '</div></div>';
+        } else if (section.type === 'services') {
+          html += '<div class="section-services" data-section-id="' + sectionId + '" data-section-type="services">';
+          html += '<h2 data-editable data-field="title">' + escapeHtml(section.content.title || 'Our Services') + '</h2>';
+          if (section.content.subtitle) {
+            html += '<p class="services-subtitle" data-editable data-field="subtitle">' + escapeHtml(section.content.subtitle) + '</p>';
+          }
+          html += '<div class="services-grid">';
+          (section.content.items || []).forEach(function(item, itemIndex) {
+            html += '<div class="service-card" data-item-index="' + itemIndex + '">';
+            if (item.icon) {
+              html += '<div class="service-icon" data-editable-icon data-field="items.' + itemIndex + '.icon" data-current-icon="' + escapeHtml(item.icon) + '"><i class="fa-solid fa-' + escapeHtml(item.icon) + '"></i></div>';
+            }
+            html += '<h3 data-editable data-field="items.' + itemIndex + '.title">' + escapeHtml(item.title || '') + '</h3>';
+            html += '<p class="description" data-editable data-field="items.' + itemIndex + '.description">' + escapeHtml(item.description || '') + '</p>';
+            if (item.price) {
+              html += '<p class="price" data-editable data-field="items.' + itemIndex + '.price">' + escapeHtml(item.price) + '</p>';
+            }
+            if (item.ctaText) {
+              html += '<a href="' + escapeHtml(item.ctaLink || '#') + '" class="service-cta" data-editable-link data-field="items.' + itemIndex + '.ctaText" data-link-field="items.' + itemIndex + '.ctaLink">' + escapeHtml(item.ctaText) + '</a>';
+            }
+            html += '</div>';
+          });
+          html += '</div></div>';
+        } else if (section.type === 'story') {
+          var imagePos = section.content.imagePosition || 'right';
+          var containerClass = imagePos === 'left' ? 'story-container image-left' : 'story-container';
+          html += '<div class="section-story" data-section-id="' + sectionId + '" data-section-type="story">';
+          html += '<div class="' + containerClass + '">';
+          html += '<div class="story-content">';
+          html += '<h2 data-editable data-field="title">' + escapeHtml(section.content.title || 'Our Story') + '</h2>';
+          html += '<div class="story-text" data-editable data-field="content">' + (section.content.content || '') + '</div>';
+          if (section.content.highlights && section.content.highlights.length > 0) {
+            html += '<div class="story-highlights">';
+            section.content.highlights.forEach(function(highlight, hIndex) {
+              html += '<div class="story-highlight">';
+              html += '<div class="value" data-editable data-field="highlights.' + hIndex + '.value">' + escapeHtml(highlight.value || '') + '</div>';
+              html += '<div class="label" data-editable data-field="highlights.' + hIndex + '.label">' + escapeHtml(highlight.label || '') + '</div>';
+              html += '</div>';
+            });
+            html += '</div>';
+          }
+          html += '</div>';
+          html += '<div class="story-image" data-editable-image data-field="image">';
+          if (section.content.image) {
+            html += '<img src="' + escapeHtml(section.content.image) + '" alt="' + escapeHtml(section.content.title || 'Our Story') + '">';
+          } else {
+            html += '<i class="fa-solid fa-image"></i>';
+          }
+          html += '</div>';
+          html += '</div></div>';
+        } else if (section.type === 'gallery') {
+          var cols = section.content.columns || 3;
+          html += '<div class="section-gallery" data-section-id="' + sectionId + '" data-section-type="gallery">';
+          if (section.content.title) {
+            html += '<h2 data-editable data-field="title">' + escapeHtml(section.content.title) + '</h2>';
+          }
+          if (section.content.subtitle) {
+            html += '<p class="gallery-subtitle" data-editable data-field="subtitle">' + escapeHtml(section.content.subtitle) + '</p>';
+          }
+          html += '<div class="gallery-grid cols-' + cols + '">';
+          (section.content.images || []).forEach(function(image, imgIndex) {
+            html += '<div class="gallery-item" data-item-index="' + imgIndex + '" data-editable-image data-field="images.' + imgIndex + '.url">';
+            if (image.url) {
+              html += '<img src="' + escapeHtml(image.url) + '" alt="' + escapeHtml(image.alt || image.caption || '') + '">';
+              if (image.caption) {
+                html += '<div class="caption">' + escapeHtml(image.caption) + '</div>';
+              }
+            } else {
+              html += '<div class="placeholder"><i class="fa-solid fa-image"></i></div>';
+            }
+            html += '</div>';
+          });
+          html += '</div></div>';
+        } else if (section.type === 'contactForm') {
+          html += '<div class="section-contactForm" data-section-id="' + sectionId + '" data-section-type="contactForm">';
+          html += '<div class="contactForm-container">';
+          html += '<div class="contactForm-content">';
+          html += '<h2 data-editable data-field="title">' + escapeHtml(section.content.title || 'Get in Touch') + '</h2>';
+          if (section.content.subtitle) {
+            html += '<p class="form-subtitle" data-editable data-field="subtitle">' + escapeHtml(section.content.subtitle) + '</p>';
+          }
+          if (section.content.contactInfo) {
+            var info = section.content.contactInfo;
+            html += '<div class="contactForm-info">';
+            if (info.email) {
+              html += '<div class="info-item"><i class="fa-solid fa-envelope"></i><span data-editable data-field="contactInfo.email">' + escapeHtml(info.email) + '</span></div>';
+            }
+            if (info.phone) {
+              html += '<div class="info-item"><i class="fa-solid fa-phone"></i><span data-editable data-field="contactInfo.phone">' + escapeHtml(info.phone) + '</span></div>';
+            }
+            if (info.address) {
+              html += '<div class="info-item"><i class="fa-solid fa-location-dot"></i><span data-editable data-field="contactInfo.address">' + escapeHtml(info.address) + '</span></div>';
+            }
+            if (info.hours) {
+              html += '<div class="info-item"><i class="fa-solid fa-clock"></i><span data-editable data-field="contactInfo.hours">' + escapeHtml(info.hours) + '</span></div>';
+            }
+            html += '</div>';
+          }
+          html += '</div>';
+          html += '<div class="contact-form">';
+          (section.content.fields || []).forEach(function(field) {
+            html += '<div class="form-group">';
+            html += '<label>' + escapeHtml(field.label || field.name) + (field.required ? ' *' : '') + '</label>';
+            if (field.type === 'textarea') {
+              html += '<textarea name="' + escapeHtml(field.name) + '" placeholder="' + escapeHtml(field.placeholder || '') + '"' + (field.required ? ' required' : '') + '></textarea>';
+            } else if (field.type === 'select' && field.options) {
+              html += '<select name="' + escapeHtml(field.name) + '"' + (field.required ? ' required' : '') + '>';
+              html += '<option value="">' + escapeHtml(field.placeholder || 'Select...') + '</option>';
+              field.options.forEach(function(opt) {
+                html += '<option value="' + escapeHtml(opt) + '">' + escapeHtml(opt) + '</option>';
+              });
+              html += '</select>';
+            } else {
+              html += '<input type="' + escapeHtml(field.type || 'text') + '" name="' + escapeHtml(field.name) + '" placeholder="' + escapeHtml(field.placeholder || '') + '"' + (field.required ? ' required' : '') + '>';
+            }
+            html += '</div>';
+          });
+          html += '<button type="submit" class="submit-btn">' + escapeHtml(section.content.submitButtonText || 'Send Message') + '</button>';
+          html += '</div>';
+          html += '</div></div>';
         } else if (section.type === 'footer') {
           var copyright = section.content.copyright || ('© ' + new Date().getFullYear() + ' ' + (section.content.companyName || config.siteName || ''));
           html += '<div class="section-footer" data-section-id="' + sectionId + '" data-section-type="footer">';
@@ -2446,6 +3508,246 @@
         }
       });
     }
+
+    // ============================================
+    // IMAGE PICKER FUNCTIONALITY
+    // ============================================
+
+    var imagePickerModal = document.getElementById('imagePickerModal');
+    var closeImagePickerBtn = document.getElementById('closeImagePicker');
+    var imageUploadZone = document.getElementById('imageUploadZone');
+    var imageFileInput = document.getElementById('imageFileInput');
+    var siteImagesGrid = document.getElementById('siteImagesGrid');
+    var noImagesMessage = document.getElementById('noImagesMessage');
+    var uploadProgress = document.getElementById('uploadProgress');
+    var currentImageElement = null;
+    var currentImageField = null;
+    var siteImages = [];
+
+    // Open image picker
+    function openImagePicker(element, field) {
+      currentImageElement = element;
+      currentImageField = field;
+      imagePickerModal.classList.add('active');
+      loadSiteImages();
+    }
+
+    // Close image picker
+    function closeImagePicker() {
+      imagePickerModal.classList.remove('active');
+      currentImageElement = null;
+      currentImageField = null;
+    }
+
+    // Load site images
+    async function loadSiteImages() {
+      if (!siteId) return;
+
+      try {
+        const response = await fetch('/api/sites/' + siteId + '/images', {
+          credentials: 'same-origin'
+        });
+        const data = await response.json();
+
+        if (data.success) {
+          siteImages = data.images || [];
+          renderSiteImages();
+        }
+      } catch (error) {
+        console.error('Error loading images:', error);
+      }
+    }
+
+    // Render site images grid
+    function renderSiteImages() {
+      siteImagesGrid.innerHTML = '';
+
+      if (siteImages.length === 0) {
+        noImagesMessage.style.display = 'block';
+        return;
+      }
+
+      noImagesMessage.style.display = 'none';
+
+      siteImages.forEach(function(image) {
+        var item = document.createElement('div');
+        item.className = 'site-image-item';
+        item.innerHTML = '<img src="' + escapeHtml(image.url) + '" alt="Site image">';
+        item.addEventListener('click', function() {
+          selectImage(image.url);
+        });
+        siteImagesGrid.appendChild(item);
+      });
+    }
+
+    // Select an image
+    function selectImage(url) {
+      if (!currentImageElement || !currentImageField) return;
+
+      // Update the preview
+      var img = currentImageElement.querySelector('img');
+      var icon = currentImageElement.querySelector('i');
+
+      if (img) {
+        img.src = url;
+      } else if (icon) {
+        // Replace icon with image
+        currentImageElement.innerHTML = '<img src="' + escapeHtml(url) + '" alt="Image">';
+      }
+
+      // Update the config
+      updateConfigField(currentImageField, url);
+
+      closeImagePicker();
+    }
+
+    // Upload image
+    async function uploadImage(file) {
+      if (!siteId) return;
+
+      var formData = new FormData();
+      formData.append('image', file);
+
+      uploadProgress.style.display = 'block';
+      var progressBar = uploadProgress.querySelector('.progress-bar');
+      progressBar.style.width = '30%';
+
+      try {
+        const response = await fetch('/api/sites/' + siteId + '/images/upload', {
+          method: 'POST',
+          credentials: 'same-origin',
+          body: formData
+        });
+
+        progressBar.style.width = '100%';
+
+        const data = await response.json();
+
+        if (data.success) {
+          siteImages.unshift(data.image);
+          renderSiteImages();
+          // Auto-select the uploaded image
+          selectImage(data.image.url);
+        } else {
+          alert('Upload failed: ' + (data.error || 'Unknown error'));
+        }
+      } catch (error) {
+        console.error('Upload error:', error);
+        alert('Upload failed: ' + error.message);
+      } finally {
+        setTimeout(function() {
+          uploadProgress.style.display = 'none';
+          progressBar.style.width = '0%';
+        }, 500);
+      }
+    }
+
+    // Update config field for images
+    function updateConfigField(fieldPath, value) {
+      if (!siteData || !siteData.draftConfig) return;
+
+      var sectionEl = currentImageElement.closest('[data-section-id]');
+      if (!sectionEl) return;
+
+      var sectionId = sectionEl.getAttribute('data-section-id');
+      var section = siteData.draftConfig.sections.find(function(s) { return s.id === sectionId; });
+      if (!section) return;
+
+      // Parse the field path and set the value
+      var parts = fieldPath.split('.');
+      var obj = section.content;
+
+      for (var i = 0; i < parts.length - 1; i++) {
+        var part = parts[i];
+        var indexMatch = part.match(/^(\w+)\.(\d+)$/);
+        if (indexMatch) {
+          obj = obj[indexMatch[1]][parseInt(indexMatch[2])];
+        } else if (!isNaN(parseInt(part))) {
+          obj = obj[parseInt(part)];
+        } else {
+          if (!obj[part]) obj[part] = {};
+          obj = obj[part];
+        }
+      }
+
+      var lastPart = parts[parts.length - 1];
+      obj[lastPart] = value;
+
+      // Save to server
+      saveConfig();
+    }
+
+    // Event listeners for image picker
+    if (closeImagePickerBtn) {
+      closeImagePickerBtn.addEventListener('click', closeImagePicker);
+    }
+
+    if (imagePickerModal) {
+      imagePickerModal.addEventListener('click', function(e) {
+        if (e.target === imagePickerModal) {
+          closeImagePicker();
+        }
+      });
+    }
+
+    if (imageUploadZone) {
+      imageUploadZone.addEventListener('click', function() {
+        imageFileInput.click();
+      });
+
+      imageUploadZone.addEventListener('dragover', function(e) {
+        e.preventDefault();
+        imageUploadZone.classList.add('dragover');
+      });
+
+      imageUploadZone.addEventListener('dragleave', function() {
+        imageUploadZone.classList.remove('dragover');
+      });
+
+      imageUploadZone.addEventListener('drop', function(e) {
+        e.preventDefault();
+        imageUploadZone.classList.remove('dragover');
+        var files = e.dataTransfer.files;
+        if (files.length > 0) {
+          uploadImage(files[0]);
+        }
+      });
+    }
+
+    if (imageFileInput) {
+      imageFileInput.addEventListener('change', function() {
+        if (this.files.length > 0) {
+          uploadImage(this.files[0]);
+        }
+      });
+    }
+
+    // Handle clicks on editable image elements
+    function handleImageClick(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      var el = e.target.closest('[data-editable-image]');
+      if (el) {
+        var field = el.getAttribute('data-field');
+        openImagePicker(el, field);
+      }
+    }
+
+    // Initialize editable image elements
+    function initEditableImages() {
+      var imageElements = previewFrame.querySelectorAll('[data-editable-image]');
+      imageElements.forEach(function(el) {
+        el.addEventListener('click', handleImageClick);
+        el.style.cursor = 'pointer';
+      });
+    }
+
+    // Call initEditableImages after preview is rendered
+    var originalInitEditableElements = initEditableElements;
+    initEditableElements = function() {
+      originalInitEditableElements();
+      initEditableImages();
+    };
 
     // Apply hero background from data attributes on page load (CSP-compliant)
     function applyHeroBackground() {
