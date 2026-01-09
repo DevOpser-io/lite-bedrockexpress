@@ -6,6 +6,7 @@
   <title>DevOpser - Build Your Website with AI</title>
   <%- include('./partials/favicon') %>
   <link rel="stylesheet" href="/static/chat-custom.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
   <script src="/marked.min.js"></script>
   <script src="/purify.min.js"></script>
   <style nonce="<%= typeof cspNonce !== 'undefined' ? cspNonce : '' %>">
@@ -360,20 +361,309 @@
       line-height: 1.6;
     }
 
-    .preview-iframe-container {
+    .preview-content-container {
       flex: 1;
       display: none;
       background: #fff;
+      overflow-y: auto;
     }
 
-    .preview-iframe-container.active {
+    .preview-content-container.active {
       display: block;
     }
 
-    .preview-iframe {
-      width: 100%;
-      height: 100%;
-      border: none;
+    .preview-content {
+      min-height: 100%;
+    }
+
+    /* Site Preview Styles */
+    .site-preview {
+      --primary-color: #3B82F6;
+      --secondary-color: #10B981;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      color: #1a1a1a;
+      line-height: 1.6;
+    }
+
+    .section-hero {
+      padding: 80px 40px;
+      background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+      color: white;
+      text-align: center;
+    }
+
+    .section-hero.dark-bg {
+      color: white;
+    }
+
+    .section-hero h1 {
+      font-size: 2.5rem;
+      font-weight: 700;
+      margin-bottom: 1rem;
+    }
+
+    .section-hero p {
+      font-size: 1.25rem;
+      opacity: 0.9;
+      margin-bottom: 2rem;
+      max-width: 600px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .cta-btn {
+      display: inline-block;
+      padding: 14px 32px;
+      background: white;
+      color: var(--primary-color);
+      text-decoration: none;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 1rem;
+      transition: transform 0.2s;
+    }
+
+    .cta-btn:hover {
+      transform: translateY(-2px);
+    }
+
+    .cta-btn-white {
+      background: white;
+      color: #1a1a1a;
+    }
+
+    .section-features {
+      padding: 60px 40px;
+      background: #f8f9fa;
+      text-align: center;
+    }
+
+    .section-features h2 {
+      font-size: 2rem;
+      margin-bottom: 2rem;
+      color: #1a1a1a;
+    }
+
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 2rem;
+      max-width: 1000px;
+      margin: 0 auto;
+    }
+
+    .feature-item {
+      padding: 1.5rem;
+      text-align: center;
+    }
+
+    .feature-icon {
+      width: 60px;
+      height: 60px;
+      background: var(--primary-color);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 1rem;
+      color: white;
+      font-size: 1.5rem;
+    }
+
+    .feature-item h3 {
+      font-size: 1.25rem;
+      margin-bottom: 0.5rem;
+      color: #1a1a1a;
+    }
+
+    .feature-item p {
+      color: #666;
+      font-size: 0.95rem;
+    }
+
+    .section-about {
+      padding: 60px 40px;
+      text-align: center;
+      max-width: 800px;
+      margin: 0 auto;
+    }
+
+    .section-about h2 {
+      font-size: 2rem;
+      margin-bottom: 1.5rem;
+      color: #1a1a1a;
+    }
+
+    .section-about p {
+      color: #555;
+      font-size: 1.1rem;
+      line-height: 1.8;
+    }
+
+    .section-testimonials {
+      padding: 60px 40px;
+      background: #f8f9fa;
+      text-align: center;
+    }
+
+    .section-testimonials h2 {
+      font-size: 2rem;
+      margin-bottom: 2rem;
+      color: #1a1a1a;
+    }
+
+    .testimonials-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1.5rem;
+      justify-content: center;
+      max-width: 1000px;
+      margin: 0 auto;
+    }
+
+    .testimonial-item {
+      flex: 1;
+      min-width: 280px;
+      max-width: 350px;
+      padding: 2rem;
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+    }
+
+    .testimonial-quote {
+      font-size: 1rem;
+      font-style: italic;
+      color: #555;
+      margin-bottom: 1rem;
+    }
+
+    .testimonial-author {
+      font-weight: 600;
+      color: #1a1a1a;
+    }
+
+    .testimonial-role {
+      font-size: 0.875rem;
+      color: #888;
+    }
+
+    .section-pricing {
+      padding: 60px 40px;
+      text-align: center;
+    }
+
+    .section-pricing h2 {
+      font-size: 2rem;
+      margin-bottom: 0.5rem;
+      color: #1a1a1a;
+    }
+
+    .pricing-subtitle {
+      color: #666;
+      margin-bottom: 2rem;
+    }
+
+    .pricing-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1.5rem;
+      justify-content: center;
+      max-width: 1000px;
+      margin: 0 auto;
+    }
+
+    .pricing-item {
+      flex: 1;
+      min-width: 250px;
+      max-width: 300px;
+      padding: 2rem;
+      background: white;
+      border: 1px solid #e0e0e0;
+      border-radius: 12px;
+      text-align: center;
+    }
+
+    .pricing-item.highlighted {
+      border-color: var(--primary-color);
+      box-shadow: 0 4px 20px rgba(59, 130, 246, 0.2);
+      transform: scale(1.02);
+    }
+
+    .pricing-name {
+      font-size: 1.25rem;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+      color: #1a1a1a;
+    }
+
+    .pricing-price {
+      font-size: 2.5rem;
+      font-weight: 700;
+      color: var(--primary-color);
+    }
+
+    .pricing-period {
+      font-size: 1rem;
+      color: #888;
+    }
+
+    .pricing-features {
+      list-style: none;
+      padding: 0;
+      margin: 1.5rem 0;
+      text-align: left;
+    }
+
+    .pricing-features li {
+      padding: 0.5rem 0;
+      color: #555;
+      border-bottom: 1px solid #f0f0f0;
+    }
+
+    .pricing-features li::before {
+      content: '✓';
+      color: var(--primary-color);
+      margin-right: 0.5rem;
+    }
+
+    .pricing-cta {
+      display: inline-block;
+      padding: 12px 24px;
+      background: var(--primary-color);
+      color: white;
+      text-decoration: none;
+      border-radius: 8px;
+      font-weight: 600;
+    }
+
+    .section-contact {
+      padding: 60px 40px;
+      text-align: center;
+      background: #f8f9fa;
+    }
+
+    .section-contact h2 {
+      font-size: 2rem;
+      margin-bottom: 0.5rem;
+      color: #1a1a1a;
+    }
+
+    .section-contact p {
+      color: #666;
+      margin-bottom: 1rem;
+    }
+
+    .section-footer {
+      padding: 2rem;
+      background: #1a1a1a;
+      color: white;
+      text-align: center;
+    }
+
+    .section-footer p {
+      margin: 0;
+      opacity: 0.8;
     }
 
     /* Auth Modal */
@@ -402,6 +692,32 @@
       max-width: 420px;
       width: 90%;
       border: 1px solid #333;
+      position: relative;
+    }
+
+    .auth-modal-close {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      width: 32px;
+      height: 32px;
+      background: transparent;
+      border: 1px solid #444;
+      border-radius: 50%;
+      color: #888;
+      font-size: 20px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+      line-height: 1;
+    }
+
+    .auth-modal-close:hover {
+      background: #333;
+      color: #fff;
+      border-color: #555;
     }
 
     .auth-modal h2 {
@@ -656,7 +972,7 @@
 
     /* Momentum scrolling for smooth iOS experience */
     .chat-messages,
-    .preview-iframe-container {
+    .preview-content-container {
       -webkit-overflow-scrolling: touch;
     }
 
@@ -978,8 +1294,8 @@
         </div>
       </div>
 
-      <div class="preview-iframe-container" id="previewIframeContainer">
-        <iframe class="preview-iframe" id="previewIframe"></iframe>
+      <div class="preview-content-container" id="previewContentContainer">
+        <div class="preview-content" id="previewContent"></div>
       </div>
     </div>
   </div>
@@ -987,10 +1303,11 @@
   <!-- Auth Modal -->
   <div class="modal-overlay" id="authModal">
     <div class="auth-modal">
+      <button class="auth-modal-close" id="authCloseBtn" title="Close">&times;</button>
       <!-- Email Step -->
       <div class="auth-step active" id="authEmailStep">
-        <h2>Almost there!</h2>
-        <p class="subtitle">Enter your email to save your website</p>
+        <h2>Save your website</h2>
+        <p class="subtitle">Enter your email to save and edit your website</p>
 
         <div class="error-message" id="authError"></div>
         <div class="success-message" id="authSuccess"></div>
@@ -1033,6 +1350,7 @@
       let currentSiteId = null;
       let currentSiteConfig = null;
       let authEmail = '';
+      let hasSeenFirstPreview = false; // Track if user has seen their first preview
 
       // Elements
       const chatMessages = document.getElementById('chatMessages');
@@ -1042,8 +1360,8 @@
       const generatingIndicator = document.getElementById('generatingIndicator');
       const authModal = document.getElementById('authModal');
       const previewPlaceholder = document.getElementById('previewPlaceholder');
-      const previewIframeContainer = document.getElementById('previewIframeContainer');
-      const previewIframe = document.getElementById('previewIframe');
+      const previewContentContainer = document.getElementById('previewContentContainer');
+      const previewContent = document.getElementById('previewContent');
       const previewUrl = document.getElementById('previewUrl');
       const previewUrlText = document.getElementById('previewUrlText');
       const mySitesLink = document.getElementById('mySitesLink');
@@ -1059,6 +1377,7 @@
       const authSendCodeBtn = document.getElementById('authSendCodeBtn');
       const authVerifyCodeBtn = document.getElementById('authVerifyCodeBtn');
       const authBackBtn = document.getElementById('authBackBtn');
+      const authCloseBtn = document.getElementById('authCloseBtn');
       const authEmailDisplay = document.getElementById('authEmailDisplay');
       const authError = document.getElementById('authError');
       const authSuccess = document.getElementById('authSuccess');
@@ -1111,6 +1430,14 @@
           e.preventDefault();
           showAuthStep('email');
         });
+        authCloseBtn.addEventListener('click', closeAuthModal);
+
+        // Close modal on overlay click
+        authModal.addEventListener('click', (e) => {
+          if (e.target === authModal) {
+            closeAuthModal();
+          }
+        });
 
         authEmailInput.addEventListener('keypress', (e) => {
           if (e.key === 'Enter') handleSendCode();
@@ -1147,8 +1474,9 @@
         const prompt = chatInput.value.trim();
         if (!prompt) return;
 
-        if (!isAuthenticated) {
-          // Store prompt and show auth modal
+        // New flow: Allow first prompt without auth, require auth for changes
+        if (!isAuthenticated && hasSeenFirstPreview) {
+          // They've seen their preview, now require signup to make changes
           pendingPrompt = prompt;
           localStorage.setItem('pendingPrompt', prompt);
           showAuthModal();
@@ -1169,8 +1497,14 @@
         generatingIndicator.classList.add('active');
         sendButton.disabled = true;
 
-        // Create site and generate
-        createSiteAndGenerate(prompt);
+        // Route to appropriate generator
+        if (isAuthenticated) {
+          // Authenticated user: create real site
+          createSiteAndGenerate(prompt);
+        } else {
+          // Anonymous user: generate preview only
+          generateAnonymousPreview(prompt);
+        }
       }
 
       function addMessage(text, type) {
@@ -1191,7 +1525,7 @@
 
       async function createSiteAndGenerate(prompt) {
         try {
-          // Create a new site
+          // Create a new site with AI-generated config
           const createResponse = await fetch('/api/sites', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -1202,66 +1536,280 @@
           });
 
           if (!createResponse.ok) {
-            throw new Error('Failed to create site');
+            const errorData = await createResponse.json().catch(() => ({}));
+            throw new Error(errorData.error || 'Failed to create site');
           }
 
           const response = await createResponse.json();
           const siteData = response.site;
           currentSiteId = siteData.id;
+          console.log('[Landing] Site created:', siteData.id, 'sections:', siteData.draftConfig?.sections?.length || 0);
 
-          // Now chat with the AI to generate the site
-          const chatResponse = await fetch(`/api/sites/${siteData.id}/chat`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ message: prompt })
-          });
+          // Use the config from site creation - it already has AI-generated content
+          let configToRender = siteData.draftConfig;
 
-          if (!chatResponse.ok) {
-            throw new Error('Failed to generate website');
+          // Chat to allow AI to refine or respond (optional enhancement)
+          try {
+            const chatResponse = await fetch(`/api/sites/${siteData.id}/chat`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ message: prompt })
+            });
+
+            if (chatResponse.ok) {
+              const result = await chatResponse.json();
+              console.log('[Landing] Chat response, sections:', result.siteConfig?.sections?.length || 0);
+
+              // Use chat config if it has content, otherwise fallback to site creation config
+              if (result.siteConfig && result.siteConfig.sections && result.siteConfig.sections.length > 0) {
+                configToRender = result.siteConfig;
+              }
+
+              if (result.message) {
+                addMessage(result.message, 'assistant');
+              }
+            }
+          } catch (chatError) {
+            console.warn('[Landing] Chat enhancement failed, using initial config:', chatError);
+            // Continue with configToRender from site creation
           }
-
-          const result = await chatResponse.json();
 
           generatingIndicator.classList.remove('active');
           sendButton.disabled = false;
 
-          if (result.siteConfig) {
-            currentSiteConfig = result.siteConfig;
-            renderPreview(result.siteConfig);
+          // Render preview if we have config with sections
+          if (configToRender && configToRender.sections && configToRender.sections.length > 0) {
+            currentSiteConfig = configToRender;
+            renderPreview(configToRender);
             updatePreviewUrl(siteData.slug);
             publishBtn.classList.remove('btn-hidden');
-          }
-
-          if (result.message) {
-            addMessage(result.message, 'assistant');
+          } else {
+            console.warn('[Landing] No sections in config, showing placeholder');
+            addMessage('I created a basic site structure. Tell me more about what you want to build!', 'assistant');
           }
 
         } catch (error) {
-          console.error('Error:', error);
+          console.error('[Landing] Error creating site:', error);
           generatingIndicator.classList.remove('active');
           sendButton.disabled = false;
           addMessage('Sorry, something went wrong. Please try again.', 'assistant');
         }
       }
 
-      // Track blob URLs for cleanup
-      let currentBlobUrl = null;
+      // Generate anonymous preview (no auth required for first prompt)
+      async function generateAnonymousPreview(prompt) {
+        try {
+          console.log('[Landing] Generating anonymous preview...');
 
-      function renderPreview(config) {
-        previewPlaceholder.style.display = 'none';
-        previewIframeContainer.classList.add('active');
+          const response = await fetch('/api/preview/generate', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ prompt })
+          });
 
-        // Clean up previous blob URL
-        if (currentBlobUrl) {
-          URL.revokeObjectURL(currentBlobUrl);
+          if (!response.ok) {
+            const errorData = await response.json().catch(() => ({}));
+            throw new Error(errorData.error || 'Failed to generate preview');
+          }
+
+          const result = await response.json();
+          console.log('[Landing] Anonymous preview generated, sections:', result.config?.sections?.length || 0);
+
+          generatingIndicator.classList.remove('active');
+          sendButton.disabled = false;
+
+          if (result.config && result.config.sections && result.config.sections.length > 0) {
+            currentSiteConfig = result.config;
+            hasSeenFirstPreview = true; // Mark that they've seen their first preview
+            renderPreview(result.config);
+            updatePreviewUrl('preview');
+
+            // Show signup prompt message
+            addMessage(result.message || "Here's your website preview! Sign up to save it and make more changes.", 'assistant');
+
+            // Update chat input placeholder to encourage signup
+            chatInput.placeholder = 'Sign up to save and customize your site...';
+          } else {
+            addMessage('I had trouble generating that. Try describing your website in more detail!', 'assistant');
+          }
+
+        } catch (error) {
+          console.error('[Landing] Error generating preview:', error);
+          generatingIndicator.classList.remove('active');
+          sendButton.disabled = false;
+          addMessage('Sorry, something went wrong. Please try again.', 'assistant');
         }
+      }
 
-        const html = generatePreviewHTML(config);
-        // Use blob URL to bypass parent CSP
-        const blob = new Blob([html], { type: 'text/html' });
-        currentBlobUrl = URL.createObjectURL(blob);
-        previewIframe.src = currentBlobUrl;
-        previewUrl.classList.add('live');
+      // Render preview directly to DOM (like builder does)
+      function renderPreview(config) {
+        try {
+          console.log('[Preview] Rendering config with', config?.sections?.length || 0, 'sections');
+
+          // Defensive: ensure config is valid
+          if (!config || typeof config !== 'object') {
+            console.error('[Preview] Invalid config:', config);
+            config = { theme: {}, sections: [] };
+          }
+
+          const primaryColor = config.theme?.primaryColor || '#3B82F6';
+          const secondaryColor = config.theme?.secondaryColor || '#10B981';
+          const sections = (config.sections || [])
+            .filter(s => s && s.visible !== false)
+            .sort((a, b) => (a.order || 0) - (b.order || 0));
+
+          if (sections.length === 0) {
+            console.warn('[Preview] No sections to render');
+            return;
+          }
+
+          let html = '<div class="site-preview" id="sitePreviewContent">';
+
+          sections.forEach(function(section) {
+            const sectionId = section.id || section.type;
+
+            if (section.type === 'hero') {
+              const heroBgStart = section.content.backgroundColorStart || primaryColor;
+              const heroBgEnd = section.content.backgroundColorEnd || secondaryColor;
+              const isDark = isColorDark(heroBgStart) || isColorDark(heroBgEnd);
+              const heroClass = isDark ? 'section-hero dark-bg' : 'section-hero';
+
+              html += '<div class="' + heroClass + '" data-section-id="' + sectionId + '" data-bg-start="' + heroBgStart + '" data-bg-end="' + heroBgEnd + '">';
+              html += '<h1>' + escapeHtml(section.content.headline || '') + '</h1>';
+              html += '<p>' + escapeHtml(section.content.subheadline || '') + '</p>';
+              if (section.content.ctaText) {
+                const ctaBtnClass = isDark ? 'cta-btn cta-btn-white' : 'cta-btn';
+                html += '<a href="' + escapeHtml(section.content.ctaLink || '#') + '" class="' + ctaBtnClass + '">' + escapeHtml(section.content.ctaText) + '</a>';
+              }
+              html += '</div>';
+
+            } else if (section.type === 'features') {
+              html += '<div class="section-features" data-section-id="' + sectionId + '">';
+              html += '<h2>' + escapeHtml(section.content.title || '') + '</h2>';
+              html += '<div class="features-grid">';
+              (section.content.items || []).forEach(function(item) {
+                const iconName = item.icon || 'star';
+                html += '<div class="feature-item">';
+                html += '<div class="feature-icon"><i class="bi bi-' + escapeHtml(iconName) + '"></i></div>';
+                html += '<h3>' + escapeHtml(item.title || '') + '</h3>';
+                html += '<p>' + escapeHtml(item.description || '') + '</p>';
+                html += '</div>';
+              });
+              html += '</div></div>';
+
+            } else if (section.type === 'about') {
+              html += '<div class="section-about" data-section-id="' + sectionId + '">';
+              html += '<h2>' + escapeHtml(section.content.title || '') + '</h2>';
+              html += '<p>' + escapeHtml(section.content.content || '') + '</p>';
+              html += '</div>';
+
+            } else if (section.type === 'testimonials') {
+              html += '<div class="section-testimonials" data-section-id="' + sectionId + '">';
+              html += '<h2>' + escapeHtml(section.content.title || 'Testimonials') + '</h2>';
+              html += '<div class="testimonials-grid">';
+              (section.content.items || []).forEach(function(item) {
+                html += '<div class="testimonial-item">';
+                html += '<p class="testimonial-quote">"' + escapeHtml(item.quote || '') + '"</p>';
+                html += '<p class="testimonial-author">' + escapeHtml(item.author || '') + '</p>';
+                if (item.role) {
+                  html += '<p class="testimonial-role">' + escapeHtml(item.role) + '</p>';
+                }
+                html += '</div>';
+              });
+              html += '</div></div>';
+
+            } else if (section.type === 'pricing') {
+              html += '<div class="section-pricing" data-section-id="' + sectionId + '">';
+              html += '<h2>' + escapeHtml(section.content.title || 'Pricing') + '</h2>';
+              if (section.content.subtitle) {
+                html += '<p class="pricing-subtitle">' + escapeHtml(section.content.subtitle) + '</p>';
+              }
+              html += '<div class="pricing-grid">';
+              (section.content.items || []).forEach(function(item) {
+                const itemClass = item.highlighted ? 'pricing-item highlighted' : 'pricing-item';
+                html += '<div class="' + itemClass + '">';
+                html += '<p class="pricing-name">' + escapeHtml(item.name || '') + '</p>';
+                html += '<p><span class="pricing-price">' + escapeHtml(item.price || '') + '</span>';
+                if (item.period) {
+                  html += '<span class="pricing-period">' + escapeHtml(item.period) + '</span>';
+                }
+                html += '</p>';
+                if (item.features && item.features.length > 0) {
+                  html += '<ul class="pricing-features">';
+                  item.features.forEach(function(feature) {
+                    html += '<li>' + escapeHtml(feature) + '</li>';
+                  });
+                  html += '</ul>';
+                }
+                if (item.ctaText) {
+                  html += '<a href="' + escapeHtml(item.ctaLink || '#') + '" class="pricing-cta">' + escapeHtml(item.ctaText) + '</a>';
+                }
+                html += '</div>';
+              });
+              html += '</div></div>';
+
+            } else if (section.type === 'contact') {
+              html += '<div class="section-contact" data-section-id="' + sectionId + '">';
+              html += '<h2>' + escapeHtml(section.content.title || '') + '</h2>';
+              html += '<p>' + escapeHtml(section.content.subtitle || '') + '</p>';
+              if (section.content.email) {
+                html += '<p><i class="bi bi-envelope"></i> ' + escapeHtml(section.content.email) + '</p>';
+              }
+              html += '</div>';
+
+            } else if (section.type === 'footer') {
+              const copyright = section.content.copyright || ('© ' + new Date().getFullYear() + ' ' + (section.content.companyName || config.siteName || ''));
+              html += '<div class="section-footer" data-section-id="' + sectionId + '">';
+              html += '<p>' + escapeHtml(copyright) + '</p>';
+              html += '</div>';
+            }
+          });
+
+          html += '</div>';
+
+          // Show preview container, hide placeholder
+          previewPlaceholder.style.display = 'none';
+          previewContentContainer.classList.add('active');
+
+          // Render to DOM
+          previewContent.innerHTML = html;
+
+          // Apply CSS variables
+          const previewEl = document.getElementById('sitePreviewContent');
+          if (previewEl) {
+            previewEl.style.setProperty('--primary-color', primaryColor);
+            previewEl.style.setProperty('--secondary-color', secondaryColor);
+          }
+
+          // Apply hero background colors
+          const heroEl = previewContent.querySelector('.section-hero');
+          if (heroEl) {
+            const bgStart = heroEl.getAttribute('data-bg-start');
+            const bgEnd = heroEl.getAttribute('data-bg-end');
+            if (bgStart && bgEnd) {
+              heroEl.style.background = 'linear-gradient(135deg, ' + bgStart + ', ' + bgEnd + ')';
+            }
+          }
+
+          previewUrl.classList.add('live');
+          console.log('[Preview] Preview rendered successfully');
+
+        } catch (error) {
+          console.error('[Preview] Error rendering preview:', error);
+          previewPlaceholder.style.display = 'flex';
+          previewContentContainer.classList.remove('active');
+        }
+      }
+
+      // Helper: check if a color is dark
+      function isColorDark(color) {
+        if (!color || !color.startsWith('#')) return false;
+        const hex = color.replace('#', '');
+        const r = parseInt(hex.substr(0, 2), 16);
+        const g = parseInt(hex.substr(2, 2), 16);
+        const b = parseInt(hex.substr(4, 2), 16);
+        const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+        return luminance < 0.5;
       }
 
       function updatePreviewUrl(slug) {
@@ -1279,440 +1827,15 @@
           .replace(/'/g, '&#039;');
       }
 
-      function generatePreviewHTML(config) {
-        const theme = config.theme || {};
-        const sections = config.sections || [];
-        const primaryColor = theme.primaryColor || '#667eea';
-        const secondaryColor = theme.secondaryColor || '#764ba2';
-        const textColor = theme.textColor || '#1a1a1a';
-        const bgColor = theme.backgroundColor || '#ffffff';
-
-        // Generate CSS with theme colors using CSS custom properties
-        const css = `
-          :root {
-            --primary: ${primaryColor};
-            --secondary: ${secondaryColor};
-            --text: ${textColor};
-            --bg: ${bgColor};
-            --text-muted: #666666;
-            --bg-alt: #f8f9fa;
-            --border: #dee2e6;
-          }
-          * { margin: 0; padding: 0; box-sizing: border-box; }
-          body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-            color: var(--text);
-            line-height: 1.6;
-            background: var(--bg);
-          }
-          .container { max-width: 1200px; margin: 0 auto; padding: 0 20px; }
-          .btn {
-            display: inline-block;
-            padding: 12px 24px;
-            background: var(--primary);
-            color: white;
-            text-decoration: none;
-            border-radius: 8px;
-            font-weight: 500;
-            transition: transform 0.2s, opacity 0.2s;
-            border: none;
-            cursor: pointer;
-            font-size: 1rem;
-          }
-          .btn:hover { transform: translateY(-2px); opacity: 0.9; }
-          .btn-outline {
-            background: transparent;
-            border: 2px solid var(--primary);
-            color: var(--primary);
-          }
-          .btn-white {
-            background: white;
-            color: var(--primary);
-          }
-
-          /* Hero Section */
-          .section-hero {
-            padding: 80px 20px;
-            background: linear-gradient(135deg, color-mix(in srgb, var(--primary) 10%, transparent) 0%, color-mix(in srgb, var(--secondary) 10%, transparent) 100%);
-            text-align: center;
-          }
-          .section-hero.dark-bg {
-            color: white;
-          }
-          .section-hero.dark-bg .hero-title {
-            color: white;
-          }
-          .section-hero.dark-bg .hero-subtitle {
-            color: rgba(255,255,255,0.85);
-          }
-          .hero-title {
-            font-size: 3rem;
-            font-weight: 700;
-            margin-bottom: 20px;
-            color: var(--text);
-          }
-          .hero-subtitle {
-            font-size: 1.25rem;
-            color: var(--text-muted);
-            margin-bottom: 30px;
-            max-width: 600px;
-            margin-left: auto;
-            margin-right: auto;
-          }
-
-          /* Features Section */
-          .section-features {
-            padding: 80px 20px;
-            background: var(--bg-alt);
-          }
-          .section-title {
-            text-align: center;
-            font-size: 2rem;
-            margin-bottom: 50px;
-          }
-          .features-grid {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 24px;
-            justify-content: center;
-          }
-          .feature-card {
-            flex: 1;
-            min-width: 250px;
-            max-width: 350px;
-            padding: 30px;
-            background: white;
-            border-radius: 12px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
-          }
-          .feature-icon {
-            width: 50px;
-            height: 50px;
-            background: color-mix(in srgb, var(--primary) 15%, transparent);
-            border-radius: 12px;
-            margin-bottom: 16px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: var(--primary);
-            font-size: 1.5rem;
-          }
-          .feature-title {
-            font-size: 1.25rem;
-            margin-bottom: 10px;
-          }
-          .feature-desc {
-            color: var(--text-muted);
-          }
-
-          /* About Section */
-          .section-about {
-            padding: 80px 20px;
-          }
-          .about-grid {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 50px;
-            align-items: center;
-          }
-          .about-content {
-            flex: 1;
-            min-width: 300px;
-          }
-          .about-title {
-            font-size: 2rem;
-            margin-bottom: 20px;
-          }
-          .about-desc {
-            color: var(--text-muted);
-            margin-bottom: 20px;
-          }
-          .about-image {
-            flex: 1;
-            min-width: 300px;
-          }
-          .about-image img {
-            width: 100%;
-            border-radius: 12px;
-          }
-
-          /* Pricing Section */
-          .section-pricing {
-            padding: 80px 20px;
-            background: var(--bg-alt);
-          }
-          .pricing-grid {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 24px;
-            justify-content: center;
-            align-items: center;
-          }
-          .pricing-card {
-            flex: 1;
-            min-width: 280px;
-            max-width: 350px;
-            padding: 40px 30px;
-            background: white;
-            color: var(--text);
-            border-radius: 16px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
-          }
-          .pricing-card.featured {
-            background: var(--primary);
-            color: white;
-            transform: scale(1.05);
-          }
-          .pricing-name {
-            font-size: 1.5rem;
-            margin-bottom: 10px;
-          }
-          .pricing-price {
-            font-size: 2.5rem;
-            font-weight: 700;
-            margin-bottom: 20px;
-          }
-          .pricing-features {
-            list-style: none;
-            margin-bottom: 30px;
-          }
-          .pricing-features li {
-            padding: 8px 0;
-            border-bottom: 1px solid var(--border);
-          }
-          .pricing-card.featured .pricing-features li {
-            border-bottom-color: rgba(255,255,255,0.2);
-          }
-
-          /* Contact Section */
-          .section-contact {
-            padding: 80px 20px;
-          }
-          .contact-container {
-            max-width: 600px;
-            margin: 0 auto;
-          }
-          .contact-title {
-            text-align: center;
-            font-size: 2rem;
-            margin-bottom: 20px;
-          }
-          .contact-desc {
-            text-align: center;
-            color: var(--text-muted);
-            margin-bottom: 40px;
-          }
-          .contact-form {
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-          }
-          .contact-form input,
-          .contact-form textarea {
-            padding: 14px;
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            font-size: 1rem;
-            font-family: inherit;
-          }
-          .contact-form textarea {
-            resize: vertical;
-          }
-
-          /* Footer Section */
-          .section-footer {
-            padding: 40px 20px;
-            background: #1a1a1a;
-            color: white;
-            text-align: center;
-          }
-          .footer-company {
-            margin-bottom: 10px;
-          }
-          .footer-copyright {
-            color: #888;
-            font-size: 0.9rem;
-          }
-
-          /* Responsive */
-          @media (max-width: 768px) {
-            .hero-title { font-size: 2rem; }
-            .section-title { font-size: 1.5rem; }
-            .pricing-card.featured { transform: none; }
-          }
-        `;
-
-        let sectionsHTML = sections.map(section => {
-          switch (section.type) {
-            case 'hero':
-              return generateHeroHTML(section.content, theme);
-            case 'features':
-              return generateFeaturesHTML(section.content);
-            case 'about':
-              return generateAboutHTML(section.content);
-            case 'pricing':
-              return generatePricingHTML(section.content);
-            case 'contact':
-              return generateContactHTML(section.content);
-            case 'footer':
-              return generateFooterHTML(section.content);
-            default:
-              return '';
-          }
-        }).join('');
-
-        return `<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>${escapeHtml(config.siteName || 'Preview')}</title>
-  <style>${css}</style>
-</head>
-<body>
-  ${sectionsHTML}
-</body>
-</html>`;
-      }
-
-      // Helper to determine if a hex color is dark (for text contrast)
-      function isColorDark(hexColor) {
-        if (!hexColor || typeof hexColor !== 'string') return false;
-        const hex = hexColor.replace('#', '');
-        if (hex.length !== 6 && hex.length !== 3) return false;
-        let r, g, b;
-        if (hex.length === 3) {
-          r = parseInt(hex[0] + hex[0], 16);
-          g = parseInt(hex[1] + hex[1], 16);
-          b = parseInt(hex[2] + hex[2], 16);
-        } else {
-          r = parseInt(hex.substring(0, 2), 16);
-          g = parseInt(hex.substring(2, 4), 16);
-          b = parseInt(hex.substring(4, 6), 16);
-        }
-        const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
-        return luminance < 0.5;
-      }
-
-      function generateHeroHTML(content, theme) {
-        // Use custom background colors if set, otherwise use theme colors with 20% opacity
-        const hasCustomBg = content.backgroundColorStart || content.backgroundColorEnd;
-        const bgStart = content.backgroundColorStart || theme.primaryColor || '#667eea';
-        const bgEnd = content.backgroundColorEnd || theme.secondaryColor || '#764ba2';
-        // Use full opacity for custom colors, 20% opacity for theme colors
-        const heroStyle = hasCustomBg
-          ? `background: linear-gradient(135deg, ${bgStart} 0%, ${bgEnd} 100%);`
-          : `background: linear-gradient(135deg, ${bgStart}20 0%, ${bgEnd}20 100%);`;
-
-        // Add dark-bg class if custom colors are dark (for text contrast)
-        const isDark = hasCustomBg && (isColorDark(bgStart) || isColorDark(bgEnd));
-        const heroClass = isDark ? 'section-hero dark-bg' : 'section-hero';
-
-        return `
-          <section class="${heroClass}" style="${heroStyle}">
-            <div class="container">
-              <h1 class="hero-title">${escapeHtml(content.headline || 'Welcome')}</h1>
-              <p class="hero-subtitle">${escapeHtml(content.subheadline || '')}</p>
-              ${content.ctaText ? `<a href="${escapeHtml(content.ctaLink || '#')}" class="btn${isDark ? ' btn-white' : ''}">${escapeHtml(content.ctaText)}</a>` : ''}
-            </div>
-          </section>
-        `;
-      }
-
-      function generateFeaturesHTML(content) {
-        const items = content.items || [];
-        const itemsHTML = items.map(item => `
-          <div class="feature-card">
-            <div class="feature-icon">★</div>
-            <h3 class="feature-title">${escapeHtml(item.title || '')}</h3>
-            <p class="feature-desc">${escapeHtml(item.description || '')}</p>
-          </div>
-        `).join('');
-
-        return `
-          <section class="section-features">
-            <div class="container">
-              <h2 class="section-title">${escapeHtml(content.title || 'Features')}</h2>
-              <div class="features-grid">
-                ${itemsHTML}
-              </div>
-            </div>
-          </section>
-        `;
-      }
-
-      function generateAboutHTML(content) {
-        return `
-          <section class="section-about">
-            <div class="container about-grid">
-              <div class="about-content">
-                <h2 class="about-title">${escapeHtml(content.title || 'About Us')}</h2>
-                <p class="about-desc">${escapeHtml(content.description || '')}</p>
-                ${content.ctaText ? `<a href="${escapeHtml(content.ctaLink || '#')}" class="btn">${escapeHtml(content.ctaText)}</a>` : ''}
-              </div>
-              ${content.imageUrl ? `<div class="about-image"><img src="${escapeHtml(content.imageUrl)}" alt="About"></div>` : ''}
-            </div>
-          </section>
-        `;
-      }
-
-      function generatePricingHTML(content) {
-        const tiers = content.tiers || [];
-        const tiersHTML = tiers.map(tier => `
-          <div class="pricing-card${tier.featured ? ' featured' : ''}">
-            <h3 class="pricing-name">${escapeHtml(tier.name || '')}</h3>
-            <div class="pricing-price">${escapeHtml(tier.price || '')}</div>
-            <ul class="pricing-features">
-              ${(tier.features || []).map(f => `<li>✓ ${escapeHtml(f)}</li>`).join('')}
-            </ul>
-            <a href="#" class="btn${tier.featured ? ' btn-white' : ' btn-outline'}">${escapeHtml(tier.ctaText || 'Get Started')}</a>
-          </div>
-        `).join('');
-
-        return `
-          <section class="section-pricing">
-            <div class="container">
-              <h2 class="section-title">${escapeHtml(content.title || 'Pricing')}</h2>
-              <div class="pricing-grid">
-                ${tiersHTML}
-              </div>
-            </div>
-          </section>
-        `;
-      }
-
-      function generateContactHTML(content) {
-        return `
-          <section class="section-contact">
-            <div class="contact-container">
-              <h2 class="contact-title">${escapeHtml(content.title || 'Contact Us')}</h2>
-              <p class="contact-desc">${escapeHtml(content.description || '')}</p>
-              <form class="contact-form">
-                <input type="text" placeholder="Your Name">
-                <input type="email" placeholder="Your Email">
-                <textarea placeholder="Your Message" rows="5"></textarea>
-                <button type="submit" class="btn">${escapeHtml(content.buttonText || 'Send Message')}</button>
-              </form>
-            </div>
-          </section>
-        `;
-      }
-
-      function generateFooterHTML(content) {
-        return `
-          <footer class="section-footer">
-            <div class="container">
-              <p class="footer-company">${escapeHtml(content.companyName || '')}</p>
-              <p class="footer-copyright">${escapeHtml(content.copyright || '© 2024 All rights reserved.')}</p>
-            </div>
-          </footer>
-        `;
-      }
-
       // Auth handlers
       function showAuthModal() {
         authModal.classList.add('active');
         authEmailInput.focus();
+      }
+
+      function closeAuthModal() {
+        authModal.classList.remove('active');
+        hideAuthErrors();
       }
 
       function showAuthStep(step) {

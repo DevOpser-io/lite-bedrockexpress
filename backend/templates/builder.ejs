@@ -767,6 +767,73 @@
       margin-right: 0.5rem;
     }
 
+    /* Editable list items */
+    [data-editable-list-item] {
+      cursor: pointer;
+      transition: background 0.2s;
+      border-radius: 4px;
+      position: relative;
+    }
+
+    [data-editable-list-item]:hover {
+      background: rgba(13, 110, 253, 0.1);
+    }
+
+    [data-editable-list-item]:focus {
+      outline: 2px solid #0d6efd;
+      outline-offset: 2px;
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    [data-editable-list-item].editing {
+      outline: 2px solid #0d6efd;
+    }
+
+    /* Delete button for list items */
+    .list-item-delete {
+      position: absolute;
+      right: -24px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 20px;
+      height: 20px;
+      background: #dc3545;
+      color: white;
+      border: none;
+      border-radius: 50%;
+      cursor: pointer;
+      font-size: 12px;
+      line-height: 1;
+      opacity: 0;
+      transition: opacity 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    [data-editable-list-item]:hover .list-item-delete,
+    [data-editable-list-item]:focus .list-item-delete {
+      opacity: 1;
+    }
+
+    /* Add item button */
+    .list-add-item {
+      margin-top: 8px;
+      padding: 4px 12px;
+      background: #28a745;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 12px;
+      opacity: 0;
+      transition: opacity 0.2s;
+    }
+
+    [data-editable-list]:hover .list-add-item {
+      opacity: 1;
+    }
+
     .pricing-cta {
       display: inline-block;
       padding: 0.75rem 2rem;
@@ -1334,9 +1401,9 @@
             }
             html += '</p>';
             if (item.features && item.features.length > 0) {
-              html += '<ul class="pricing-features">';
-              item.features.forEach(function(feature) {
-                html += '<li>' + escapeHtml(feature) + '</li>';
+              html += '<ul class="pricing-features" data-editable-list data-field="items.' + itemIndex + '.features">';
+              item.features.forEach(function(feature, featureIndex) {
+                html += '<li data-editable-list-item data-list-index="' + featureIndex + '">' + escapeHtml(feature) + '</li>';
               });
               html += '</ul>';
             }
@@ -1419,6 +1486,20 @@
         el.addEventListener('click', handleIconClick);
       });
 
+      // Editable list items (pricing features, etc.)
+      var listItems = previewFrame.querySelectorAll('[data-editable-list-item]');
+      listItems.forEach(function(el) {
+        el.addEventListener('click', handleListItemClick);
+        el.addEventListener('blur', handleListItemBlur);
+        el.addEventListener('keydown', handleListItemKeydown);
+      });
+
+      // Add delete buttons and add-item buttons to lists
+      var lists = previewFrame.querySelectorAll('[data-editable-list]');
+      lists.forEach(function(list) {
+        initEditableList(list);
+      });
+
       // Initialize icon picker grid
       initIconPicker();
 
@@ -1476,6 +1557,286 @@
         e.target.textContent = originalContent;
         e.target.blur();
       }
+    }
+
+    // ============================================
+    // LIST ITEM EDITING (Pricing features, etc.)
+    // ============================================
+
+    var currentListItem = null;
+    var originalListContent = '';
+
+    // Initialize an editable list with delete buttons and add button
+    function initEditableList(list) {
+      // Add delete buttons to each item
+      var items = list.querySelectorAll('[data-editable-list-item]');
+      items.forEach(function(item) {
+        if (!item.querySelector('.list-item-delete')) {
+          var deleteBtn = document.createElement('button');
+          deleteBtn.className = 'list-item-delete';
+          deleteBtn.innerHTML = '×';
+          deleteBtn.title = 'Delete this item';
+          deleteBtn.onclick = function(e) {
+            e.stopPropagation();
+            deleteListItem(item);
+          };
+          item.appendChild(deleteBtn);
+        }
+      });
+
+      // Add "add item" button if not present
+      if (!list.querySelector('.list-add-item')) {
+        var addBtn = document.createElement('button');
+        addBtn.className = 'list-add-item';
+        addBtn.innerHTML = '+ Add item';
+        addBtn.onclick = function(e) {
+          e.stopPropagation();
+          addListItem(list);
+        };
+        list.appendChild(addBtn);
+      }
+    }
+
+    // Handle click on list item
+    function handleListItemClick(e) {
+      e.preventDefault();
+      e.stopPropagation();
+
+      var el = e.target.closest('[data-editable-list-item]');
+      if (!el || el.getAttribute('contenteditable') === 'true') return;
+
+      // Store original content for cancel
+      originalListContent = el.textContent.replace('×', '').trim();
+      currentListItem = el;
+
+      // Make editable
+      el.setAttribute('contenteditable', 'true');
+      el.classList.add('editing');
+      el.focus();
+
+      // Select all text (excluding the delete button)
+      var range = document.createRange();
+      var textNode = el.firstChild;
+      if (textNode && textNode.nodeType === Node.TEXT_NODE) {
+        range.selectNodeContents(textNode);
+        var sel = window.getSelection();
+        sel.removeAllRanges();
+        sel.addRange(range);
+      }
+    }
+
+    // Handle blur on list item
+    function handleListItemBlur(e) {
+      var el = e.target.closest('[data-editable-list-item]');
+      if (!el || el.getAttribute('contenteditable') !== 'true') return;
+
+      el.setAttribute('contenteditable', 'false');
+      el.classList.remove('editing');
+
+      // Get text content excluding delete button
+      var newContent = '';
+      el.childNodes.forEach(function(node) {
+        if (node.nodeType === Node.TEXT_NODE) {
+          newContent += node.textContent;
+        }
+      });
+      newContent = newContent.trim();
+
+      if (newContent !== originalListContent && newContent !== '') {
+        saveListItemEdit(el, newContent);
+      } else if (newContent === '' && originalListContent !== '') {
+        // Restore if emptied
+        el.childNodes.forEach(function(node) {
+          if (node.nodeType === Node.TEXT_NODE) {
+            node.textContent = originalListContent;
+          }
+        });
+      }
+
+      currentListItem = null;
+      originalListContent = '';
+    }
+
+    // Handle keydown on list item
+    function handleListItemKeydown(e) {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        e.target.blur();
+      } else if (e.key === 'Escape') {
+        e.preventDefault();
+        var el = e.target.closest('[data-editable-list-item]');
+        if (el) {
+          el.childNodes.forEach(function(node) {
+            if (node.nodeType === Node.TEXT_NODE) {
+              node.textContent = originalListContent;
+            }
+          });
+          el.blur();
+        }
+      } else if (e.key === 'Backspace' || e.key === 'Delete') {
+        // Allow normal deletion within text
+        var el = e.target.closest('[data-editable-list-item]');
+        if (el) {
+          var textContent = '';
+          el.childNodes.forEach(function(node) {
+            if (node.nodeType === Node.TEXT_NODE) {
+              textContent += node.textContent;
+            }
+          });
+          // If empty after potential delete, allow but don't prevent
+          // This fixes the "can't delete" issue
+        }
+      }
+    }
+
+    // Delete a list item
+    function deleteListItem(item) {
+      var list = item.closest('[data-editable-list]');
+      var section = item.closest('[data-section-id]');
+      if (!list || !section) return;
+
+      var sectionId = section.getAttribute('data-section-id');
+      var field = list.getAttribute('data-field');
+
+      // Get all current items
+      var items = list.querySelectorAll('[data-editable-list-item]');
+      var newFeatures = [];
+      items.forEach(function(li) {
+        if (li !== item) {
+          var text = '';
+          li.childNodes.forEach(function(node) {
+            if (node.nodeType === Node.TEXT_NODE) {
+              text += node.textContent;
+            }
+          });
+          newFeatures.push(text.trim());
+        }
+      });
+
+      // Remove the item from DOM
+      item.remove();
+
+      // Save to backend
+      saveListToBackend(sectionId, field, newFeatures);
+    }
+
+    // Add a new list item
+    function addListItem(list) {
+      var section = list.closest('[data-section-id]');
+      if (!section) return;
+
+      var sectionId = section.getAttribute('data-section-id');
+      var field = list.getAttribute('data-field');
+
+      // Create new list item
+      var items = list.querySelectorAll('[data-editable-list-item]');
+      var newIndex = items.length;
+
+      var newItem = document.createElement('li');
+      newItem.setAttribute('data-editable-list-item', '');
+      newItem.setAttribute('data-list-index', newIndex);
+      newItem.textContent = 'New feature';
+
+      // Add delete button
+      var deleteBtn = document.createElement('button');
+      deleteBtn.className = 'list-item-delete';
+      deleteBtn.innerHTML = '×';
+      deleteBtn.title = 'Delete this item';
+      deleteBtn.onclick = function(e) {
+        e.stopPropagation();
+        deleteListItem(newItem);
+      };
+      newItem.appendChild(deleteBtn);
+
+      // Add event listeners
+      newItem.addEventListener('click', handleListItemClick);
+      newItem.addEventListener('blur', handleListItemBlur);
+      newItem.addEventListener('keydown', handleListItemKeydown);
+
+      // Insert before add button
+      var addBtn = list.querySelector('.list-add-item');
+      list.insertBefore(newItem, addBtn);
+
+      // Get all features and save
+      var newFeatures = [];
+      list.querySelectorAll('[data-editable-list-item]').forEach(function(li) {
+        var text = '';
+        li.childNodes.forEach(function(node) {
+          if (node.nodeType === Node.TEXT_NODE) {
+            text += node.textContent;
+          }
+        });
+        newFeatures.push(text.trim());
+      });
+
+      saveListToBackend(sectionId, field, newFeatures);
+
+      // Start editing the new item
+      newItem.click();
+    }
+
+    // Save list item edit
+    function saveListItemEdit(el, newContent) {
+      var list = el.closest('[data-editable-list]');
+      var section = el.closest('[data-section-id]');
+      if (!list || !section) return;
+
+      var sectionId = section.getAttribute('data-section-id');
+      var field = list.getAttribute('data-field');
+
+      // Update the text node
+      el.childNodes.forEach(function(node) {
+        if (node.nodeType === Node.TEXT_NODE) {
+          node.textContent = newContent;
+        }
+      });
+
+      // Get all features
+      var features = [];
+      list.querySelectorAll('[data-editable-list-item]').forEach(function(li) {
+        var text = '';
+        li.childNodes.forEach(function(node) {
+          if (node.nodeType === Node.TEXT_NODE) {
+            text += node.textContent;
+          }
+        });
+        features.push(text.trim());
+      });
+
+      saveListToBackend(sectionId, field, features);
+    }
+
+    // Save list changes to backend
+    function saveListToBackend(sectionId, field, features) {
+      // field is like "items.0.features" for pricing
+      var parts = field.split('.');
+      var currentSection = siteData.draftConfig.sections.find(function(s) { return s.id === sectionId; });
+      if (!currentSection) return;
+
+      // Navigate to the right place in the config
+      if (parts[0] === 'items' && parts.length >= 3) {
+        var itemIndex = parseInt(parts[1]);
+        var propName = parts[2];
+        if (currentSection.content.items && currentSection.content.items[itemIndex]) {
+          currentSection.content.items[itemIndex][propName] = features;
+        }
+      }
+
+      // Save to backend
+      fetch('/api/sites/' + siteData.id, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ draftConfig: siteData.draftConfig })
+      })
+      .then(function(response) { return response.json(); })
+      .then(function(data) {
+        if (data.success) {
+          console.log('[Builder] List saved successfully');
+        }
+      })
+      .catch(function(error) {
+        console.error('[Builder] Error saving list:', error);
+      });
     }
 
     // Handle click on link/button element

@@ -27,6 +27,7 @@ const mobileAuthRoutes = require('./routes/mobileAuth');
 const adminRoutes = require('./routes/admin');
 const adminPanelRoutes = require('./routes/admin-panel');
 const sitesRoutes = require('./routes/sites');
+const previewRoutes = require('./routes/preview');
 
 const listEndpoints = require('express-list-endpoints');
 
@@ -502,6 +503,9 @@ app.use((err, req, res, next) => {
 
     // Sites API Routes - for DevOpser Lite website builder
     app.use('/api/sites', sitesRoutes);
+
+    // Preview Routes - anonymous preview generation (no auth required)
+    app.use('/api/preview', previewRoutes);
 
     // Auth Routes - for authentication functionality
     app.use('/auth', authRoutes);
